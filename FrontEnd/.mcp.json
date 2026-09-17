@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "mssql": {
+      "command": "npx",
+      "args": ["-y", "mcp-node-mssql"],
+      "env": {
+        "DB_HOST": "int-soft",
+        "DB_PORT": "1433",
+        "DB_DATABASE": "EPOE",
+        "DB_USERNAME": "",
+        "DB_PASSWORD": "",
+        "TRUSTED_CONNECTION": "true",
+        "DB_TRUST_SERVER_CERTIFICATE": "true",
+        "DB_ENCRYPT": "false",
+        "DB_ENABLE_ARITH_ABORT": "true",
+        "CONNECTION_TIMEOUT": "60000",
+        "REQUEST_TIMEOUT": "300000"
+      }
+    }
+  }
+}

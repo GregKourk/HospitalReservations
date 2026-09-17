@@ -1,0 +1,48 @@
+<!doctype html>
+<html class="h-full" lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Ραντεβού Νοσοκομείου</title>
+  <link rel="icon" type="image/svg+xml" href="/media/brand-logos/cloud-one.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Διαχείριση ραντεβού και ιατρείων νοσοκομείου" />
+  <style>
+    .dark body {
+      background-color: hsl(240 10% 4%);
+    }
+  </style>
+  <!-- ── DevExtreme themes ── must come BEFORE main.tsx ── -->
+  <link rel="dx-theme" data-theme="generic.light" href="/css/dx.light.css" data-active="true" />
+  <!-- <link rel="dx-theme" data-theme="fluent.blue.dark" href="/css/dx.fluent.blue.dark.css" data-active="false" /> -->
+  <link rel="dx-theme" data-theme="generic.dark" href="/css/dx.dark.css" data-active="false" />
+ 
+  <script>
+    (function () {
+      try {
+        const theme = localStorage.getItem('theme') || 'system';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDarkMode = theme === 'dark' || (theme === 'system' && prefersDark);
+
+        if (isDarkMode) {
+          document.documentElement.classList.add('dark');
+        }
+
+        // Flip DevExtreme theme active flags to match
+        // document.addEventListener('DOMContentLoaded', function () {
+        //   const lightLink = document.querySelector('link[data-theme="fluent.blue.light"]');
+        //   const darkLink = document.querySelector('link[data-theme="fluent.blue.dark"]');
+        //   if (lightLink) lightLink.setAttribute('data-active', isDarkMode ? 'false' : 'true');
+        //   if (darkLink) darkLink.setAttribute('data-active', isDarkMode ? 'true' : 'false');
+        // });
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body class="text-foreground bg-background flex h-full text-base antialiased">
+  <div class="flex grow" id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

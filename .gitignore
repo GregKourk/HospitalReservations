@@ -1,0 +1,21 @@
+# .NET
+BackEnd/**/bin/
+BackEnd/**/obj/
+BackEnd/**/.vs/
+*.user
+
+# Node / Vite
+FrontEnd/node_modules/
+FrontEnd/dist/
+FrontEnd/.vite/
+
+# Logs
+*.log
+C:/Logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/

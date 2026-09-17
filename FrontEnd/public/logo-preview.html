@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPOE — Προεπισκόπηση Εικονιδίου</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #111827;
+      padding: 40px;
+    }
+    .page-header { margin-bottom: 36px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .page-header p  { font-size: 14px; color: #6b7280; line-height: 1.6; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      padding: 3px 10px; border-radius: 20px;
+      background: #eff6ff; color: #1B84FF;
+      margin-bottom: 10px;
+    }
+    .card h2  { font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+    .card p   { font-size: 13px; color: #6b7280; margin-bottom: 22px; line-height: 1.6; }
+
+    .strip {
+      border-radius: 10px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: flex-end;
+      gap: 32px;
+      margin-bottom: 10px;
+    }
+    .strip.light { background: #f9fafb; border: 1px solid #e5e7eb; }
+    .strip.dark  { background: #15151E; }
+
+    .sz { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .sz span { font-size: 10px; font-weight: 600; color: #9ca3af; letter-spacing:.04em; }
+    .strip.dark .sz span { color: #4b5563; }
+
+    .mock-row { display: flex; gap: 10px; margin-top: 6px; }
+    .sidebar-mock {
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 16px; border-radius: 8px; flex: 1;
+    }
+    .sidebar-mock.light { background: #fff; border: 1px solid #e5e7eb; }
+    .sidebar-mock.dark  { background: #1C1C2E; border: 1px solid #2d2d40; }
+    .brand { font-size: 14px; font-weight: 800; letter-spacing: .12em; }
+    .sidebar-mock.light .brand { color: #1a2035; }
+    .sidebar-mock.dark  .brand { color: #fff; }
+
+    .lbl { font-size: 10px; font-weight: 600; color: #9ca3af; letter-spacing:.05em;
+           text-transform: uppercase; margin-bottom: 5px; margin-top: 16px; }
+    .divider { height: 1px; background: #f3f4f6; margin: 18px 0; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>EPOE — Εναλλακτικά Icon Concepts (Ο + Ε)</h1>
+  <p>5 σχέδια που παίζουν δημιουργικά με τα γράμματα <strong>Ε</strong> και <strong>Ο</strong> του EPOE.<br>
+     Πείτε μου ποιο σας αρέσει και το εφαρμόζουμε αμέσως.</p>
+</div>
+
+<div class="grid">
+
+<!-- ═══════════════════════════════════════════════════════ 1 ══ -->
+<div class="card">
+  <div class="badge">Concept 1</div>
+  <h2>Σφραγίδα — Ε μέσα σε κύκλο (Ο)</h2>
+  <p>Ο κύκλος <strong>Ο</strong> γίνεται η σφραγίδα/πλαίσιο, και μέσα του χαράσσεται λευκό <strong>Ε</strong>.
+     Αποπνέει επισημότητα και αυθεντία — σαν επίσημο έμβλημα εντολής.</p>
+
+  <div class="lbl">Light Mode</div>
+  <div class="strip light">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#1B84FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="white" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="white" rx="0.5"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#1B84FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="white" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="white" rx="0.5"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#1B84FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="white" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="white" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="white" rx="0.5"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="lbl">Dark Mode</div>
+  <div class="strip dark">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#4DA3FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#4DA3FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#4DA3FF"/>
+        <rect x="5.5" y="5.5" width="3" height="13" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="5.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="10.5" width="7" height="3" fill="#15151E" rx="0.5"/>
+        <rect x="5.5" y="15.5" width="9.5" height="3" fill="#15151E" rx="0.5"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="lbl">Sidebar Preview</div>
+  <div class="mock-row">
+    <div class="sidebar-mock light">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1B84FF"/><rect x="5.5" y="5.5" width="3" height="13" fill="white" rx="0.5"/><rect x="5.5" y="5.5" width="9.5" height="3" fill="white" rx="0.5"/><rect x="5.5" y="10.5" width="7" height="3" fill="white" rx="0.5"/><rect x="5.5" y="15.5" width="9.5" height="3" fill="white" rx="0.5"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+    <div class="sidebar-mock dark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#4DA3FF"/><rect x="5.5" y="5.5" width="3" height="13" fill="#1C1C2E" rx="0.5"/><rect x="5.5" y="5.5" width="9.5" height="3" fill="#1C1C2E" rx="0.5"/><rect x="5.5" y="10.5" width="7" height="3" fill="#1C1C2E" rx="0.5"/><rect x="5.5" y="15.5" width="9.5" height="3" fill="#1C1C2E" rx="0.5"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 2 ══ -->
+<div class="card">
+  <div class="badge">Concept 2</div>
+  <h2>Waypoint-E — Ε με σημεία διαδρομής</h2>
+  <p>Το γράμμα <strong>Ε</strong> χτίζεται από waypoints: κάθε μπάρα είναι διαδρομή που τελειώνει σε κύκλο.
+     Ο κύκλος <strong>Ο</strong> εμφανίζεται ως σημείο προορισμού στις δύο μακρές μπάρες.</p>
+
+  <div class="lbl">Light Mode</div>
+  <div class="strip light">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- E vertical spine -->
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#1B84FF"/>
+        <!-- Top bar + destination circle -->
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#1B84FF"/>
+        <!-- Middle bar (shorter) -->
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#93BFFF"/>
+        <!-- Bottom bar + destination circle -->
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#1B84FF"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#1B84FF"/>
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#1B84FF"/>
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#93BFFF"/>
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#1B84FF"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#1B84FF"/>
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#1B84FF"/>
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#93BFFF"/>
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#1B84FF"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="lbl">Dark Mode</div>
+  <div class="strip dark">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#4DA3FF"/>
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#4DA3FF"/>
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#6CB4F5"/>
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#4DA3FF"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#4DA3FF"/>
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#4DA3FF"/>
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#6CB4F5"/>
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#4DA3FF"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#4DA3FF"/>
+        <rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="5.25" r="2.75" fill="#4DA3FF"/>
+        <rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="15" cy="12" r="2.25" fill="#6CB4F5"/>
+        <rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="19" cy="18.75" r="2.75" fill="#4DA3FF"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="lbl">Sidebar Preview</div>
+  <div class="mock-row">
+    <div class="sidebar-mock light">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#1B84FF"/><rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/><circle cx="19" cy="5.25" r="2.75" fill="#1B84FF"/><rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#1B84FF"/><circle cx="15" cy="12" r="2.25" fill="#93BFFF"/><rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#1B84FF"/><circle cx="19" cy="18.75" r="2.75" fill="#1B84FF"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+    <div class="sidebar-mock dark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3.5" width="3.5" height="17" rx="1.75" fill="#4DA3FF"/><rect x="3" y="3.5" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/><circle cx="19" cy="5.25" r="2.75" fill="#4DA3FF"/><rect x="3" y="10.25" width="9.5" height="3.5" rx="1.75" fill="#4DA3FF"/><circle cx="15" cy="12" r="2.25" fill="#6CB4F5"/><rect x="3" y="17" width="12.5" height="3.5" rx="1.75" fill="#4DA3FF"/><circle cx="19" cy="18.75" r="2.75" fill="#4DA3FF"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 3 ══ -->
+<div class="card">
+  <div class="badge">Concept 3</div>
+  <h2>Ring-Ε — Κυκλικό Ο ως βάση του Ε</h2>
+  <p>Ο δακτύλιος <strong>Ο</strong> αποτελεί την αριστερή «ράχη» και οι τρεις μπάρες <strong>Ε</strong> εκτείνονται δεξιά.
+     Σύγχρονο monogram που διαβάζεται ταυτόχρονα ως Ο και Ε.</p>
+
+  <div class="lbl">Light Mode</div>
+  <div class="strip light">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Three E bars extending right -->
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <!-- O ring on left, anchoring all bars -->
+        <circle cx="7.5" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="7.5" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="7.5" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="lbl">Dark Mode</div>
+  <div class="strip dark">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="7.5" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="lbl">Sidebar Preview</div>
+  <div class="mock-row">
+    <div class="sidebar-mock light">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/><rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#1B84FF"/><rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#1B84FF"/><circle cx="7.5" cy="12" r="6" fill="#1B84FF"/><circle cx="7.5" cy="12" r="2.5" fill="white"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+    <div class="sidebar-mock dark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="7.5" y="5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/><rect x="7.5" y="10.25" width="10.5" height="3.5" rx="1.75" fill="#4DA3FF"/><rect x="7.5" y="15.5" width="13.5" height="3.5" rx="1.75" fill="#4DA3FF"/><circle cx="7.5" cy="12" r="6" fill="#4DA3FF"/><circle cx="7.5" cy="12" r="2.5" fill="#1C1C2E"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 4 ══ -->
+<div class="card">
+  <div class="badge">Concept 4</div>
+  <h2>ΕΟ Monogram — Γεωμετρικό δίγραμμα</h2>
+  <p>Το <strong>Ε</strong> και το <strong>Ο</strong> δίπλα-δίπλα ως geometrical lettermark.
+     Το Ε με bold ράβδους, το Ο ως δακτύλιος — κλασικό monogram σε minimal στυλ.</p>
+
+  <div class="lbl">Light Mode</div>
+  <div class="strip light">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- E (left half) -->
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <!-- O (right half) as ring -->
+        <circle cx="18" cy="12" r="5.5" fill="#1B84FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <circle cx="18" cy="12" r="5.5" fill="#1B84FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#1B84FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#1B84FF"/>
+        <circle cx="18" cy="12" r="5.5" fill="#1B84FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="white"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="lbl">Dark Mode</div>
+  <div class="strip dark">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="5.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="5.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="4"   width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="10.5" width="6" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <rect x="1.5" y="17"  width="8" height="3"  rx="1.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="5.5" fill="#4DA3FF"/>
+        <circle cx="18" cy="12" r="2.5" fill="#15151E"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="lbl">Sidebar Preview</div>
+  <div class="mock-row">
+    <div class="sidebar-mock light">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#1B84FF"/><rect x="1.5" y="4" width="8" height="3" rx="1.5" fill="#1B84FF"/><rect x="1.5" y="10.5" width="6" height="3" rx="1.5" fill="#1B84FF"/><rect x="1.5" y="17" width="8" height="3" rx="1.5" fill="#1B84FF"/><circle cx="18" cy="12" r="5.5" fill="#1B84FF"/><circle cx="18" cy="12" r="2.5" fill="white"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+    <div class="sidebar-mock dark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="1.5" y="4" width="3" height="16" rx="1.5" fill="#4DA3FF"/><rect x="1.5" y="4" width="8" height="3" rx="1.5" fill="#4DA3FF"/><rect x="1.5" y="10.5" width="6" height="3" rx="1.5" fill="#4DA3FF"/><rect x="1.5" y="17" width="8" height="3" rx="1.5" fill="#4DA3FF"/><circle cx="18" cy="12" r="5.5" fill="#4DA3FF"/><circle cx="18" cy="12" r="2.5" fill="#1C1C2E"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 5 ══ -->
+<div class="card">
+  <div class="badge">Concept 5</div>
+  <h2>Συγχωνευμένο ΟΕ — Fused Lettermark</h2>
+  <p>Το <strong>Ε</strong> και το <strong>Ο</strong> ενώνονται: οι μπάρες του Ε διαπερνούν τον κύκλο Ο.
+     Πιο αφαιρετικό και μοντέρνο — ένα ενιαίο σχήμα αντί για δύο ξεχωριστά.</p>
+
+  <div class="lbl">Light Mode</div>
+  <div class="strip light">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- E spine -->
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#1B84FF"/>
+        <!-- Three E bars passing through / into O -->
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <!-- O circle on right, overlapping bars -->
+        <circle cx="17" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="17" cy="12" r="3" fill="white"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="17" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="17" cy="12" r="3" fill="white"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/>
+        <circle cx="17" cy="12" r="6" fill="#1B84FF"/>
+        <circle cx="17" cy="12" r="3" fill="white"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="lbl">Dark Mode</div>
+  <div class="strip dark">
+    <div class="sz">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="3" fill="#15151E"/>
+      </svg>
+      <span>24px</span>
+    </div>
+    <div class="sz">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="3" fill="#15151E"/>
+      </svg>
+      <span>48px</span>
+    </div>
+    <div class="sz">
+      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="4"   width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="6" fill="#4DA3FF"/>
+        <circle cx="17" cy="12" r="3" fill="#15151E"/>
+      </svg>
+      <span>96px</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="lbl">Sidebar Preview</div>
+  <div class="mock-row">
+    <div class="sidebar-mock light">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#1B84FF"/><rect x="2" y="4" width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/><rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#1B84FF"/><rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#1B84FF"/><circle cx="17" cy="12" r="6" fill="#1B84FF"/><circle cx="17" cy="12" r="3" fill="white"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+    <div class="sidebar-mock dark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="3.5" height="16" rx="1.75" fill="#4DA3FF"/><rect x="2" y="4" width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/><rect x="2" y="10.25" width="13" height="3.5" rx="1.75" fill="#4DA3FF"/><rect x="2" y="16.5" width="15.5" height="3.5" rx="1.75" fill="#4DA3FF"/><circle cx="17" cy="12" r="6" fill="#4DA3FF"/><circle cx="17" cy="12" r="3" fill="#1C1C2E"/></svg>
+      <span class="brand">EPOE</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /grid -->
+
+<p style="margin-top:28px; font-size:13px; color:#9ca3af; text-align:center;">
+  Πείτε μου ποιο σας αρέσει — ή αν θέλετε κάποια παραλλαγή χρώματος/μεγέθους — και το εφαρμόζουμε.
+</p>
+
+</body>
+</html>

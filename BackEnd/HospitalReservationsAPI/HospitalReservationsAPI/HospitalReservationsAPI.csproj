@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>08513621-d204-41e9-9293-30dec62aed69</UserSecretsId>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="12.0.1" />
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+		<PackageReference Include="DevExpress.AspNetCore.Reporting" Version="25.2.6" />
+		<PackageReference Include="DevExpress.Reporting.Core" Version="25.2.6" />
+		<PackageReference Include="DevExtreme.AspNet.Data" Version="5.1.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="10.0.2" />
+		<PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.15.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.15.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageReference Include="SkiaSharp" Version="3.119.4" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.4" />
+		<PackageReference Include="System.CodeDom" Version="10.0.2" />
+		<PackageReference Include="System.Collections.Immutable" Version="10.0.2" />
+		<PackageReference Include="System.Composition" Version="10.0.2" />
+		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="10.0.2" />
+		<PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.2" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.8" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+		<PackageReference Include="System.Memory.Data" Version="10.0.2" />
+		<PackageReference Include="System.Reflection.Metadata" Version="10.0.2" />
+		<PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
+		<PackageReference Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
+		<PackageReference Include="System.Text.Json" Version="10.0.2" />
+		<PackageReference Include="System.Threading.Channels" Version="10.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="Data\AppConfig.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Contexts\" />
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="EF.Generators\HospitalReservations\HospitalReservations.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>HospitalReservations.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="EF.Generators\HospitalReservations\HospitalReservations.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>HospitalReservations.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

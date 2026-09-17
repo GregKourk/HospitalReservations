@@ -1,0 +1,162 @@
+{
+  "LoginConfigStatus": {
+    "IsLocked": false,
+    "LockedMsg": " Η Εφαρμογή είναι κλειδωμένη. Δεν επιτρέπεται η είσοδος!",
+    "InfoMsg": "testing"
+  },
+  "UserLoginSettings": {
+    "ChangeUserData": [
+      {
+        "AMA": "70782",
+        "Monada": 133300,
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Admin"
+          }
+        ]
+      }
+    ],
+    "ByPassLoginService": [
+      {
+        "UserId": 36428,
+        "UserTitle": "Director Makis",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "15",
+        "TenantId": 1,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "FU"
+          },
+          {
+            "APP_RIGHT1": "Edit"
+          }
+        ]
+      },
+      {
+        "UserId": 71255,
+        "UserTitle": "Director Makis 2",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "16",
+        "TenantId": 30325,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Supervisor"
+          },
+          {
+            "APP_RIGHT1": "Edit"
+          }
+        ]
+      },
+      {
+        "UserId": 99999,
+        "UserTitle": "Sub B User",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "17",
+        "TenantId": 4,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "FU"
+          },
+          {
+            "APP_RIGHT1": "Edit"
+          }
+        ]
+      },
+      {
+        "UserId": 99999,
+        "UserTitle": "Sub B User",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "18",
+        "TenantId": 4,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Admin"
+          },
+          {
+            "APP_RIGHT1": "View"
+          }
+        ]
+      },
+      {
+        "UserId": 100,
+        "UserTitle": "Κεντρικός Φορέας",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "100",
+        "TenantId": 0,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Global-Viewer"
+          },
+          {
+            "APP_RIGHT1": "View"
+          }
+        ]
+      },
+      {
+        "UserId": 150,
+        "UserTitle": "Supervisor User",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "150",
+        "TenantId": 15,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Admin"
+          },
+          {
+            "APP_RIGHT1": "View"
+          }
+        ]
+      },
+      {
+        "UserId": 30,
+        "UserTitle": "L03 User",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "30",
+        "TenantId": 16,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "FU"
+          },
+          {
+            "APP_RIGHT1": "Edit"
+          }
+        ]
+      },
+      {
+        "UserId": 130,
+        "UserTitle": "Supervisor2 User",
+        "ThesiId": 133331,
+        "Thesi": "Greece/Larisa",
+        "Monada": 133300,
+        "Ama": "130",
+        "TenantId": 19,
+        "APP_RIGHTS": [
+          {
+            "APP_RIGHT1": "Admin"
+          },
+          {
+            "APP_RIGHT1": "View"
+          }
+        ]
+      }
+    ],
+    "MaxFailedLoginAttempts": 5,
+    "LockoutDurationMinutes": 15
+  }
+}

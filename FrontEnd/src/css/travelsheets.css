@@ -1,0 +1,22 @@
+.dx-data-row td {
+  vertical-align: middle !important;
+  height: 50px !important;
+}
+
+.align-middle {
+  vertical-align: middle !important;
+}
+
+/* ── Wizard popup layout ─────────────────────────────────────────────────────
+   DevExtreme Popup already calculates the correct pixel height for
+   .dx-popup-content (popup height - title height) via inline styles.
+   We only remove the default padding so our inner flex layout can manage
+   its own spacing.
+── */
+.movement-wizard-popup .dx-popup-content {
+  padding: 0 !important;
+}
+
+.settings-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}

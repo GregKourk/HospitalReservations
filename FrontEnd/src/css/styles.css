@@ -1,0 +1,46 @@
+/* Tailwind Core */
+@import 'tailwindcss';
+
+/* ReUI Configs */
+@import './config.reui.css';
+
+/** Global Styles **/
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  *:focus-visible {
+    @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
+  }
+
+  /* DevExtreme's unlicensed/evaluation build injects a <dx-license> custom
+     element as body's first child, self-styled with `width: 100% !important`
+     etc. inline — which no external rule can out-cascade. body is
+     display:flex (row), so that inline width:100% becomes its flex-basis
+     and it claims the ENTIRE row, squeezing #root (and the whole app) into
+     whatever's left. flex-basis/flex-grow/flex-shrink aren't among its
+     inline-styled properties, so pinning those to 0 here removes it from
+     the flex layout's space allocation without needing to beat `!important`
+     on anything it actually sets itself. */
+  dx-license {
+    flex: 0 0 0 !important;
+    min-width: 0 !important; /* flex items default to min-width:auto, which floors at their content's intrinsic width regardless of flex-basis */
+    overflow: hidden !important;
+  }
+}
+
+/* Metronic Components  */
+@import './components/image-input.css';
+@import './components/apexcharts.css';
+@import './components/leaflet.css';
+@import './components/rating.css';
+@import './components/image-input.css';
+@import './components/scrollable.css';
+
+/* Demos */
+@import './demos/demo1.css';
+
+/** Dark/Light Theme Variant **/
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:not(.dark *));
