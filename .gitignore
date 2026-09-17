@@ -19,3 +19,7 @@ Thumbs.db
 
 # Editors
 .idea/
+
+# Claude Code / docs
+FrontEnd/.claude/
+FrontEnd/**/*.md
