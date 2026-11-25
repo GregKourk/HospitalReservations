@@ -37,8 +37,9 @@ namespace HospitalReservationsAPI.Controllers
             }
             else if (User.IsInRole("ClinicManager"))
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(s => s.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(s => ownClinicIds.Contains(s.ClinicId));
+                if (clinicId.HasValue) query = query.Where(s => s.ClinicId == clinicId);
                 if (doctorId.HasValue) query = query.Where(s => s.DoctorId == doctorId);
             }
             else if (User.IsInRole("Doctor"))
@@ -86,8 +87,8 @@ namespace HospitalReservationsAPI.Controllers
             {
                 if (User.IsInRole("ClinicManager"))
                 {
-                    var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                    if (request.ClinicId != ownClinicId) return Forbid();
+                    var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                    if (!ownClinicIds.Contains(request.ClinicId)) return Forbid();
                 }
                 else if (User.IsInRole("Doctor"))
                 {
@@ -99,6 +100,12 @@ namespace HospitalReservationsAPI.Controllers
                     return Forbid();
                 }
             }
+
+            if (!await _db.DoctorClinics.AnyAsync(dc => dc.DoctorId == request.DoctorId && dc.ClinicId == request.ClinicId))
+                return BadRequest("Ο γιατρός δεν δουλεύει σε αυτό το υποκατάστημα. Πρόσθεσέ το πρώτα στα στοιχεία του γιατρού.");
+
+            if (await OverlapsAsync(request.DoctorId, null, request.DayOfWeek, request.StartTime, request.EndTime, request.EffectiveFrom, request.EffectiveTo))
+                return Conflict(OverlapMessage);
 
             var schedule = new DoctorSchedule
             {
@@ -141,6 +148,9 @@ namespace HospitalReservationsAPI.Controllers
             if (schedule is null) return NotFound();
 
             if (await GetScheduleScopeErrorAsync(schedule) is { } scopeError) return scopeError;
+
+            if (request.IsActive && await OverlapsAsync(schedule.DoctorId, schedule.ScheduleId, request.DayOfWeek, request.StartTime, request.EndTime, request.EffectiveFrom, request.EffectiveTo))
+                return Conflict(OverlapMessage);
 
             var before = new { schedule.DayOfWeek, schedule.StartTime, schedule.EndTime, schedule.SlotMinutes, schedule.EffectiveFrom, schedule.EffectiveTo, schedule.IsActive };
 
@@ -195,6 +205,20 @@ namespace HospitalReservationsAPI.Controllers
             return null;
         }
 
+        private const string OverlapMessage = "Ο γιατρός έχει ήδη πρόγραμμα που επικαλύπτεται με αυτές τις ώρες (στο ίδιο ή σε άλλο υποκατάστημα).";
+
+        // A doctor can work at several branches (026_doctor_clinics.sql) but
+        // can't be at two of them at once: no two active weekly windows of the
+        // same doctor may overlap in day, time and effective-date range.
+        private Task<bool> OverlapsAsync(Guid doctorId, Guid? excludeScheduleId, byte dayOfWeek, TimeSpan start, TimeSpan end, DateTime from, DateTime? to) =>
+            _db.DoctorSchedules.AnyAsync(s => s.DoctorId == doctorId
+                && s.IsActive
+                && (excludeScheduleId == null || s.ScheduleId != excludeScheduleId)
+                && s.DayOfWeek == dayOfWeek
+                && s.StartTime < end && s.EndTime > start
+                && (s.EffectiveTo == null || s.EffectiveTo >= from)
+                && (to == null || s.EffectiveFrom <= to));
+
         private bool IsFullyPrivileged() => User.IsInRole("Admin") || User.IsInRole("SuperUser");
 
         private async Task<Guid?> GetOwnDoctorIdAsync()
@@ -211,8 +235,8 @@ namespace HospitalReservationsAPI.Controllers
 
             if (User.IsInRole("ClinicManager"))
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                return schedule.ClinicId == ownClinicId ? null : Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                return ownClinicIds.Contains(schedule.ClinicId) ? null : Forbid();
             }
 
             if (User.IsInRole("Doctor"))

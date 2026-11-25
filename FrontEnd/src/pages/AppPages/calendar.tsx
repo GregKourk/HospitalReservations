@@ -74,7 +74,7 @@ export default function CalendarPage() {
       getClinics().then(({ data }) => {
         setClinics(data);
         if (data.length === 1) setClinicId(data[0].clinicId);
-      }).catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+      }).catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
     }
     getAppointmentStatuses().then(({ data }) => setStatuses(data)).catch(() => {});
   }, [isDoctorOnly]);
@@ -132,7 +132,7 @@ export default function CalendarPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{isDoctorOnly ? 'Το Ημερολόγιό μου' : 'Ημερολόγιο'}</h1>
           <p className="text-sm text-muted-foreground">
-            {isDoctorOnly ? 'Το πρόγραμμά σου — κλικ σε ραντεβού για ενέργειες.' : 'Οπτική προβολή ραντεβού ανά κλινική/γιατρό — κλικ σε ραντεβού για ενέργειες.'}
+            {isDoctorOnly ? 'Το πρόγραμμά σου — κλικ σε ραντεβού για ενέργειες.' : 'Οπτική προβολή ραντεβού ανά υποκατάστημα/γιατρό — κλικ σε ραντεβού για ενέργειες.'}
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
@@ -150,11 +150,11 @@ export default function CalendarPage() {
         )
       ) : (
         <Card>
-          <CardHeader><CardTitle className="text-base">Κλινική / Γιατρός</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Υποκατάστημα / Γιατρός</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
             <div>
-              <Label className="mb-1.5 block">Κλινική</Label>
-              <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε κλινική" searchEnabled />
+              <Label className="mb-1.5 block">Υποκατάστημα</Label>
+              <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε υποκατάστημα" searchEnabled />
             </div>
             <div>
               <Label className="mb-1.5 block">Γιατρός</Label>

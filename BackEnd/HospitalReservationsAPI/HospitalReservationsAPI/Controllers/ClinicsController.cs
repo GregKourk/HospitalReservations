@@ -27,12 +27,12 @@ namespace HospitalReservationsAPI.Controllers
             if (!includeInactive)
                 query = query.Where(c => c.IsActive);
 
-            // "Κλινικές (scope: δική του)" — a ClinicManager only ever sees
-            // the one clinic they manage, not the whole list.
+            // "Υποκαταστήματα (scope: δικά του)" — a ClinicManager only ever sees
+            // the branches they manage, not the whole list.
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(c => c.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(c => ownClinicIds.Contains(c.ClinicId));
             }
 
             var clinics = await query
@@ -57,8 +57,8 @@ namespace HospitalReservationsAPI.Controllers
         {
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (id != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(id)) return Forbid();
             }
 
             var clinic = await _db.Clinics.Where(c => c.ClinicId == id && !c.IsDeleted)
@@ -81,6 +81,8 @@ namespace HospitalReservationsAPI.Controllers
         [Authorize(Roles = "Admin,SuperUser")]
         public async Task<ActionResult<ClinicDto>> Create(ClinicUpsertRequest request)
         {
+            if (await GetManagerErrorAsync(request.ManagerUserId) is { } managerError) return managerError;
+
             var clinic = new Clinic
             {
                 Name = request.Name,
@@ -111,8 +113,8 @@ namespace HospitalReservationsAPI.Controllers
             var isClinicManagerOnly = User.IsInRole("ClinicManager") && !IsHigherPrivileged();
             if (isClinicManagerOnly)
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (id != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(id)) return Forbid();
             }
 
             var clinic = await _db.Clinics.FirstOrDefaultAsync(c => c.ClinicId == id && !c.IsDeleted);
@@ -126,7 +128,10 @@ namespace HospitalReservationsAPI.Controllers
             // A ClinicManager can edit their own clinic's details but can't
             // reassign who manages it — only Admin/SuperUser can.
             if (!isClinicManagerOnly)
+            {
+                if (await GetManagerErrorAsync(request.ManagerUserId) is { } managerError) return managerError;
                 clinic.ManagerUserId = request.ManagerUserId;
+            }
             clinic.UpdatedAt = DateTimeOffset.Now;
             await _db.SaveChangesAsync();
 
@@ -150,6 +155,16 @@ namespace HospitalReservationsAPI.Controllers
             await AuditLogger.LogAsync(_db, HttpContext, "Delete", "Clinic", id.ToString());
 
             return NoContent();
+        }
+
+        // One user may manage several branches (ClinicScopeHelper), but must
+        // hold the ClinicManager role — otherwise the scope never applies.
+        private async Task<ActionResult?> GetManagerErrorAsync(Guid? managerUserId)
+        {
+            if (managerUserId is null) return null;
+            var roleId = await _db.Roles.Where(r => r.Name == "ClinicManager").Select(r => r.RoleId).FirstAsync();
+            var ok = await _db.UserRoles.AnyAsync(ur => ur.UserId == managerUserId && ur.RoleId == roleId);
+            return ok ? null : BadRequest("Ο υπεύθυνος πρέπει να έχει τον ρόλο «Υπεύθυνος Υποκαταστήματος».");
         }
 
         private bool IsHigherPrivileged() => User.IsInRole("Admin") || User.IsInRole("SuperUser");

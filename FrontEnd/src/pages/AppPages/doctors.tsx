@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import DataGrid, { Column, FilterRow, HeaderFilter, Pager, Paging, SearchPanel } from 'devextreme-react/data-grid';
 import SelectBox from 'devextreme-react/select-box';
+import TagBox from 'devextreme-react/tag-box';
 import notify from 'devextreme/ui/notify';
 import { confirm } from 'devextreme/ui/dialog';
 import { LayoutGrid, LoaderCircleIcon, Pencil, Trash2 } from 'lucide-react';
@@ -24,7 +25,10 @@ import {
   updateDoctor,
 } from '@/services/hospital-api';
 
-const EMPTY_FORM = { email: '', fullName: '', amka: '', specialty: '', licenseNumber: '' };
+const EMPTY_FORM = { email: '', fullName: '', amka: '', licenseNumber: '', extraClinicIds: [] as string[] };
+
+// "Κεντρικό, Γλυφάδα" — every branch the doctor works at, main branch first.
+const branchNames = (row: FullDoctorDto) => (row.clinics?.length ? row.clinics.map((c) => c.text).join(', ') : row.clinicName);
 
 // Same pragmatic check the browser's own type="email" validation uses —
 // good enough to catch typos ("gmail,com", missing "@") without rejecting
@@ -52,6 +56,8 @@ export default function DoctorsPage() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<FullDoctorDto | null>(null);
   const [editingAmkaTouched, setEditingAmkaTouched] = useState(false);
+  // Every branch the doctor being edited works at (the main one is always added on save).
+  const [editingClinicIds, setEditingClinicIds] = useState<string[]>([]);
 
   const emailInvalid = emailTouched && form.email.trim().length > 0 && !isValidEmail(form.email);
   const amkaInvalid = amkaTouched && form.amka.trim().length > 0 && !isValidAmka(form.amka);
@@ -74,14 +80,14 @@ export default function DoctorsPage() {
     getClinics().then(({ data }) => {
       setClinics(data);
       if (data.length === 1) setClinicId(data[0].clinicId);
-    }).catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+    }).catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
   }, []);
 
+  // The whole shared specialty list, not just the ones this branch already
+  // offers — adding a doctor here is how a branch starts offering one.
   useEffect(() => {
-    setDepartmentId(null);
-    if (!clinicId) { setDepartments([]); return; }
-    getLookupDepartments(clinicId).then(({ data }) => setDepartments(data)).catch(() => {});
-  }, [clinicId]);
+    getLookupDepartments().then(({ data }) => setDepartments(data)).catch(() => {});
+  }, []);
 
   const load = () => {
     if (!clinicId) { setDoctors([]); return; }
@@ -93,9 +99,18 @@ export default function DoctorsPage() {
   };
   useEffect(load, [clinicId, departmentId]);
 
+  const editBranchOptions: ClinicDto[] = editing
+    ? [
+        ...clinics,
+        ...(editing.clinics ?? [])
+          .filter((c) => !clinics.some((x) => x.clinicId === c.id))
+          .map((c) => ({ clinicId: c.id, name: c.text, isActive: true })),
+      ]
+    : clinics;
+
   async function handleCreate() {
     if (!clinicId || !departmentId) {
-      notify('Επίλεξε κλινική και τμήμα.', 'warning', 3000);
+      notify('Επίλεξε υποκατάστημα και ειδικότητα.', 'warning', 3000);
       return;
     }
     if (!form.email.trim() || !form.fullName.trim() || !form.licenseNumber.trim()) {
@@ -120,8 +135,8 @@ export default function DoctorsPage() {
         clinicId,
         departmentId,
         amka: form.amka.trim() || undefined,
-        specialty: form.specialty,
         licenseNumber: form.licenseNumber,
+        clinicIds: [clinicId, ...form.extraClinicIds.filter((id) => id !== clinicId)],
       });
       notify('Ο γιατρός δημιουργήθηκε.', 'success', 2500);
       setForm(EMPTY_FORM);
@@ -148,8 +163,8 @@ export default function DoctorsPage() {
         clinicId: editing.clinicId,
         departmentId: editing.departmentId,
         amka: editing.amka?.trim() || undefined,
-        specialty: editing.specialty,
         licenseNumber: editing.licenseNumber,
+        clinicIds: Array.from(new Set([editing.clinicId, ...editingClinicIds])),
       });
       notify('Ο γιατρός ενημερώθηκε.', 'success', 2500);
       setEditing(null);
@@ -189,30 +204,29 @@ export default function DoctorsPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Κλινική / Τμήμα</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Υποκατάστημα / Ειδικότητα</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
           <div>
-            <Label className="mb-1.5 block">Κλινική</Label>
+            <Label className="mb-1.5 block">Υποκατάστημα</Label>
             <SelectBox
               dataSource={clinics}
               valueExpr="clinicId"
               displayExpr="name"
               value={clinicId}
               onValueChanged={(e) => setClinicId(e.value)}
-              placeholder="Επίλεξε κλινική"
+              placeholder="Επίλεξε υποκατάστημα"
               searchEnabled
             />
           </div>
           <div>
-            <Label className="mb-1.5 block">Τμήμα</Label>
+            <Label className="mb-1.5 block">Ειδικότητα</Label>
             <SelectBox
               dataSource={departments}
               valueExpr="id"
               displayExpr="text"
               value={departmentId}
               onValueChanged={(e) => setDepartmentId(e.value)}
-              placeholder="Επίλεξε τμήμα"
-              disabled={!clinicId}
+              placeholder="Επίλεξε ειδικότητα"
               searchEnabled
             />
           </div>
@@ -251,8 +265,17 @@ export default function DoctorsPage() {
                 {amkaInvalid && <p className="mt-1 text-xs text-destructive">Το ΑΜΚΑ πρέπει να έχει 11 ψηφία.</p>}
               </div>
               <div>
-                <Label className="mb-1.5 block">Ειδικότητα</Label>
-                <Input value={form.specialty} onChange={(e) => setForm((v) => ({ ...v, specialty: e.target.value }))} />
+                <Label className="mb-1.5 block">Και σε άλλα υποκαταστήματα</Label>
+                <TagBox
+                  dataSource={clinics.filter((c) => c.clinicId !== clinicId)}
+                  valueExpr="clinicId"
+                  displayExpr="name"
+                  value={form.extraClinicIds}
+                  onValueChanged={(e) => setForm((v) => ({ ...v, extraClinicIds: e.value ?? [] }))}
+                  placeholder="Κανένα"
+                  showSelectionControls
+                  searchEnabled
+                />
               </div>
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -268,7 +291,7 @@ export default function DoctorsPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <DataGrid dataSource={doctors} keyExpr="doctorId" showBorders columnAutoWidth loadPanel={{ enabled: loading }} noDataText="Δεν υπάρχουν γιατροί σε αυτό το τμήμα.">
+              <DataGrid dataSource={doctors} keyExpr="doctorId" showBorders columnAutoWidth loadPanel={{ enabled: loading }} noDataText="Δεν υπάρχουν γιατροί σε αυτή την ειδικότητα.">
                 <SearchPanel visible width={240} placeholder="Αναζήτηση..." />
                 <FilterRow visible />
                 <HeaderFilter visible />
@@ -277,14 +300,14 @@ export default function DoctorsPage() {
                 <Column dataField="fullName" caption="Ονοματεπώνυμο" />
                 <Column dataField="email" caption="Email" />
                 <Column dataField="amka" caption="ΑΜΚΑ" width={110} calculateCellValue={(row: FullDoctorDto) => row.amka ?? '—'} />
-                <Column dataField="specialty" caption="Ειδικότητα" />
+                <Column caption="Υποκαταστήματα" calculateCellValue={branchNames} />
                 <Column dataField="licenseNumber" caption="Αρ. άδειας" width={140} />
                 <Column
                   caption="Ενέργειες"
                   width={120}
                   cellRender={({ data }: { data: FullDoctorDto }) => (
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => { setEditing(data); setEditingAmkaTouched(false); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setEditing(data); setEditingClinicIds((data.clinics ?? []).map((c) => c.id)); setEditingAmkaTouched(false); }}><Pencil className="h-3.5 w-3.5" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => handleDelete(data)}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   )}
@@ -301,17 +324,37 @@ export default function DoctorsPage() {
             <DialogHeader><DialogTitle>Επεξεργασία γιατρού — {editing.fullName}</DialogTitle></DialogHeader>
             <DialogBody className="space-y-4">
               <div>
-                <Label className="mb-1.5 block">Κλινική</Label>
+                <Label className="mb-1.5 block">Κύριο υποκατάστημα</Label>
                 <SelectBox
-                  dataSource={clinics}
+                  dataSource={editBranchOptions}
                   valueExpr="clinicId"
                   displayExpr="name"
                   value={editing.clinicId}
-                  onValueChanged={(e) => setEditing((v) => v && { ...v, clinicId: e.value })}
+                  onValueChanged={(e) => {
+                    setEditing((v) => v && { ...v, clinicId: e.value });
+                    if (e.value) setEditingClinicIds((ids) => (ids.includes(e.value) ? ids : [...ids, e.value]));
+                  }}
                 />
               </div>
               <div>
-                <Label className="mb-1.5 block">Τμήμα</Label>
+                <Label className="mb-1.5 block">Υποκαταστήματα όπου δουλεύει</Label>
+                <TagBox
+                  dataSource={editBranchOptions}
+                  valueExpr="clinicId"
+                  displayExpr="name"
+                  value={editingClinicIds}
+                  onValueChanged={(e) => {
+                    const ids: string[] = e.value ?? [];
+                    // The main branch can't be removed — change the main branch first.
+                    setEditingClinicIds(editing.clinicId && !ids.includes(editing.clinicId) ? [...ids, editing.clinicId] : ids);
+                  }}
+                  showSelectionControls
+                  searchEnabled
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Το πρόγραμμα ορίζεται ανά υποκατάστημα στη σελίδα «Προγράμματα».</p>
+              </div>
+              <div>
+                <Label className="mb-1.5 block">Ειδικότητα</Label>
                 <SelectBox
                   dataSource={departments}
                   valueExpr="id"
@@ -330,10 +373,6 @@ export default function DoctorsPage() {
                   maxLength={11}
                 />
                 {editingAmkaInvalid && <p className="mt-1 text-xs text-destructive">Το ΑΜΚΑ πρέπει να έχει 11 ψηφία.</p>}
-              </div>
-              <div>
-                <Label className="mb-1.5 block">Ειδικότητα</Label>
-                <Input value={editing.specialty} onChange={(e) => setEditing((v) => v && { ...v, specialty: e.target.value })} />
               </div>
               <div>
                 <Label className="mb-1.5 block">Αριθμός άδειας</Label>
@@ -360,12 +399,12 @@ export default function DoctorsPage() {
         dataSource={allDoctors}
         loading={summaryLoading}
       >
-        <Column dataField="clinicName" caption="Κλινική" />
-        <Column dataField="departmentName" caption="Τμήμα" />
+        <Column dataField="clinicName" caption="Κύριο υποκατάστημα" />
+        <Column caption="Υποκαταστήματα" calculateCellValue={branchNames} />
+        <Column dataField="departmentName" caption="Ειδικότητα" />
         <Column dataField="fullName" caption="Ονοματεπώνυμο" />
         <Column dataField="email" caption="Email" />
         <Column dataField="amka" caption="ΑΜΚΑ" />
-        <Column dataField="specialty" caption="Ειδικότητα" />
         <Column dataField="licenseNumber" caption="Αρ. άδειας" />
       </SummaryDialog>
     </div>

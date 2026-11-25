@@ -73,11 +73,6 @@ namespace HospitalReservationsAPI
         public ICollection<Appointment> Appointments { get; set; } // Appointments.FK_Appointments_Clinic
 
         /// <summary>
-        /// Child Departments where [Departments].[ClinicId] point to this entity (FK_Departments_Clinic)
-        /// </summary>
-        public ICollection<Department> Departments { get; set; } // Departments.FK_Departments_Clinic
-
-        /// <summary>
         /// Child Doctors where [Doctors].[ClinicId] point to this entity (FK_Doctors_Clinic)
         /// </summary>
         public ICollection<Doctor> Doctors { get; set; } // Doctors.FK_Doctors_Clinic
@@ -95,7 +90,6 @@ namespace HospitalReservationsAPI
             CreatedAt = DateTimeOffset.Now;
             UpdatedAt = DateTimeOffset.Now;
             Appointments = new List<Appointment>();
-            Departments = new List<Department>();
             Doctors = new List<Doctor>();
             DoctorSchedules = new List<DoctorSchedule>();
             InitializePartial();

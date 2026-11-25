@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { roleLabel } from '@/lib/role-labels';
 import {
   RoleLookupDto,
   UserDto,
@@ -169,7 +170,7 @@ export default function UsersPage() {
             <TagBox
               dataSource={assignableRoles}
               valueExpr="id"
-              displayExpr="name"
+              displayExpr={(r: RoleLookupDto | null) => (r ? roleLabel(r.name) : '')}
               value={form.roleIds}
               onValueChanged={(e) => setForm((v) => ({ ...v, roleIds: e.value ?? [] }))}
               showSelectionControls
@@ -212,7 +213,7 @@ export default function UsersPage() {
               cellRender={({ data }: { data: UserDto }) => (
                 <div className="flex flex-wrap gap-1">
                   {data.roles.map((r) => (
-                    <Badge key={r} variant={r === 'SuperUser' ? 'destructive' : 'secondary'} size="sm">{r}</Badge>
+                    <Badge key={r} variant={r === 'SuperUser' ? 'destructive' : 'secondary'} size="sm">{roleLabel(r)}</Badge>
                   ))}
                 </div>
               )}
@@ -318,7 +319,7 @@ function RolesEditor({
     <TagBox
       dataSource={allRoles}
       valueExpr="id"
-      displayExpr="name"
+      displayExpr={(r: RoleLookupDto | null) => (r ? roleLabel(r.name) : '')}
       value={value}
       onValueChanged={(e) => setValue(e.value ?? [])}
       showSelectionControls

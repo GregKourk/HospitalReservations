@@ -7,11 +7,14 @@ namespace HospitalReservationsAPI.Model.DTOs
         public Guid DoctorId { get; set; }
         public Guid ClinicId { get; set; }
         public string ClinicName { get; set; } = string.Empty;
+        // Every branch the doctor works at, main branch first (026_doctor_clinics.sql).
+        public List<LookupItemDto> Clinics { get; set; } = new();
         public Guid DepartmentId { get; set; }
         public string DepartmentName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? Amka { get; set; }
+        // = DepartmentName; kept for existing consumers (lookups, grids).
         public string Specialty { get; set; } = string.Empty;
         public string LicenseNumber { get; set; } = string.Empty;
         public bool IsActive { get; set; }
@@ -26,21 +29,25 @@ namespace HospitalReservationsAPI.Model.DTOs
         public string Email { get; set; } = string.Empty;
         [Required]
         public string FullName { get; set; } = string.Empty;
+        // Main branch.
         public Guid ClinicId { get; set; }
+        // Every branch the doctor works at; the main branch is added if missing.
+        public List<Guid>? ClinicIds { get; set; }
         public Guid DepartmentId { get; set; }
         [RegularExpression(@"^\d{11}$", ErrorMessage = "Το ΑΜΚΑ πρέπει να έχει 11 ψηφία.")]
         public string? Amka { get; set; }
-        public string Specialty { get; set; } = string.Empty;
         public string LicenseNumber { get; set; } = string.Empty;
     }
 
     public class DoctorUpdateRequest
     {
+        // Main branch.
         public Guid ClinicId { get; set; }
+        // Every branch the doctor works at; the main branch is added if missing.
+        public List<Guid>? ClinicIds { get; set; }
         public Guid DepartmentId { get; set; }
         [RegularExpression(@"^\d{11}$", ErrorMessage = "Το ΑΜΚΑ πρέπει να έχει 11 ψηφία.")]
         public string? Amka { get; set; }
-        public string Specialty { get; set; } = string.Empty;
         public string LicenseNumber { get; set; } = string.Empty;
     }
 

@@ -37,9 +37,12 @@ namespace HospitalReservationsAPI.Controllers
         [HttpGet("Departments")]
         public async Task<ActionResult<List<LookupItemDto>>> Departments([FromQuery] Guid? clinicId)
         {
+            // With a clinic: only the specialties that branch actually offers,
+            // i.e. those with an active doctor working there. Without: the
+            // whole shared list (025_shared_specialties.sql).
             var query = _db.Departments.Where(d => d.IsActive);
             if (clinicId.HasValue)
-                query = query.Where(d => d.ClinicId == clinicId);
+                query = query.Where(d => d.Doctors.Any(doc => doc.IsActive && !doc.IsDeleted && doc.DoctorClinics.Any(dc => dc.ClinicId == clinicId)));
 
             var items = await query
                 .OrderBy(d => d.Name)
@@ -53,7 +56,8 @@ namespace HospitalReservationsAPI.Controllers
         public async Task<ActionResult<List<LookupItemDto>>> Doctors([FromQuery] Guid? clinicId, [FromQuery] Guid? departmentId)
         {
             var query = _db.Doctors.Where(d => d.IsActive && !d.IsDeleted);
-            if (clinicId.HasValue) query = query.Where(d => d.ClinicId == clinicId);
+            // Main branch or any other branch the doctor works at.
+            if (clinicId.HasValue) query = query.Where(d => d.DoctorClinics.Any(dc => dc.ClinicId == clinicId));
             if (departmentId.HasValue) query = query.Where(d => d.DepartmentId == departmentId);
 
             var items = await query
