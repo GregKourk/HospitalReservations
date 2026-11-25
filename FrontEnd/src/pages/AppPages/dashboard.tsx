@@ -93,13 +93,13 @@ function AdminDashboard({ scope }: { scope: 'system' | 'clinic' }) {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Πίνακας Ελέγχου</h1>
         <p className="text-sm text-muted-foreground">
-          {scope === 'clinic' ? 'Σύνοψη κλινικής — δεδομένα σε πραγματικό χρόνο.' : 'Σύνοψη συστήματος — δεδομένα σε πραγματικό χρόνο.'}
+          {scope === 'clinic' ? 'Σύνοψη υποκαταστήματος — δεδομένα σε πραγματικό χρόνο.' : 'Σύνοψη συστήματος — δεδομένα σε πραγματικό χρόνο.'}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {scope === 'system' && <KpiCard icon={Building2} label="Κλινικές" value={summary.totalClinics} />}
-        {scope === 'clinic' && <KpiCard icon={Building2} label="Τμήματα" value={summary.totalDepartments} />}
+        {scope === 'system' && <KpiCard icon={Building2} label="Υποκαταστήματα" value={summary.totalClinics} />}
+        {scope === 'clinic' && <KpiCard icon={Building2} label="Ειδικότητες" value={summary.totalDepartments} />}
         <KpiCard icon={Stethoscope} label="Γιατροί" value={summary.totalDoctors} />
         <KpiCard icon={UsersRound} label="Ασθενείς" value={summary.totalPatients} />
         <KpiCard icon={Users} label={scope === 'clinic' ? 'Ενεργοί γιατροί' : 'Ενεργοί χρήστες'} value={summary.totalActiveUsers} />

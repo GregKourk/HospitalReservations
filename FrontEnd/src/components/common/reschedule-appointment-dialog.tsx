@@ -38,7 +38,7 @@ export function RescheduleAppointmentDialog({ appointment, onClose, onDone }: Re
   useEffect(() => {
     setSelected(null);
     setLoading(true);
-    getDoctorAvailability(appointment.doctorId, toIsoDate(date))
+    getDoctorAvailability(appointment.doctorId, toIsoDate(date), appointment.clinicId)
       .then(({ data }) => setSlots(data))
       .catch(() => notify('Αποτυχία φόρτωσης διαθεσιμότητας.', 'error', 4000))
       .finally(() => setLoading(false));

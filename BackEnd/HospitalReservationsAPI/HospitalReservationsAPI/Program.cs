@@ -19,11 +19,26 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Real value lives outside source control: `dotnet user-secrets set
-// "ConnectionStrings:HospitalReservations" "..."` in dev, an environment
-// variable or Key Vault in other environments — never in appsettings.json.
+// Secrets live outside source control. Development: user-secrets
+// (connection string) + appsettings.Development.json (dev-only signing key).
+// Production: environment variables on the server (e.g. IIS app pool) —
+// ConnectionStrings__HospitalReservations and JwtSettings__SigningKey
+// ("__" maps to ":"). Fail fast at startup if either is missing, instead of
+// the first DB call or the first login failing at runtime.
+var connectionString = builder.Configuration.GetConnectionString("HospitalReservations");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        $"ConnectionStrings:HospitalReservations is not configured for environment '{builder.Environment.EnvironmentName}'. " +
+        "Set it via user-secrets (Development) or the ConnectionStrings__HospitalReservations environment variable (Production).");
+
+var configuredSigningKey = builder.Configuration["JwtSettings:SigningKey"];
+if (string.IsNullOrWhiteSpace(configuredSigningKey) || Encoding.UTF8.GetByteCount(configuredSigningKey) < 32)
+    throw new InvalidOperationException(
+        $"JwtSettings:SigningKey is missing or shorter than 32 bytes for environment '{builder.Environment.EnvironmentName}'. " +
+        "Set it via the JwtSettings__SigningKey environment variable (Production).");
+
 builder.Services.AddDbContext<HospitalReservationsContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HospitalReservations")));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<SignalRConnectionMapping>();

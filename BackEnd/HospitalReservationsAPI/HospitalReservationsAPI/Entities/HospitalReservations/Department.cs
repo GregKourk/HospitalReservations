@@ -22,10 +22,6 @@ namespace HospitalReservationsAPI
         [Display(Name = "Department ID")]
         public Guid DepartmentId { get; set; } // DepartmentId (Primary key)
 
-        [Required]
-        [Display(Name = "Clinic ID")]
-        public Guid ClinicId { get; set; } // ClinicId
-
         [MaxLength(150)]
         [StringLength(150)]
         [Required(AllowEmptyStrings = true)]
@@ -51,13 +47,6 @@ namespace HospitalReservationsAPI
         /// Child Doctors where [Doctors].[DepartmentId] point to this entity (FK_Doctors_Department)
         /// </summary>
         public ICollection<Doctor> Doctors { get; set; } // Doctors.FK_Doctors_Department
-
-        // Foreign keys
-
-        /// <summary>
-        /// Parent Clinic pointed by [Departments].([ClinicId]) (FK_Departments_Clinic)
-        /// </summary>
-        public Clinic Clinic { get; set; } // FK_Departments_Clinic
 
         public Department()
         {

@@ -15,24 +15,30 @@ export interface ClinicDto {
   address?: string | null;
   phone?: string | null;
   isActive: boolean;
+  /** One user may manage several branches (Β3). */
+  managerUserId?: string | null;
+  managerName?: string | null;
 }
 
 export interface ClinicUpsertRequest {
   name: string;
   address?: string;
   phone?: string;
+  /** Applied only for Admin/SuperUser; omitting it clears the manager. */
+  managerUserId?: string | null;
 }
 
+// A specialty from the shared, business-wide list (025_shared_specialties.sql)
+// — no longer owned by one clinic.
 export interface DepartmentDto {
   departmentId: string;
-  clinicId: string;
-  clinicName: string;
   name: string;
   isActive: boolean;
+  /** Active doctors in this specialty (in the requested/own branch, if filtered). */
+  doctorCount: number;
 }
 
 export interface DepartmentUpsertRequest {
-  clinicId: string;
   name: string;
 }
 
@@ -40,11 +46,14 @@ export interface FullDoctorDto {
   doctorId: string;
   clinicId: string;
   clinicName: string;
+  /** Every branch the doctor works at, main branch first (026_doctor_clinics.sql). */
+  clinics: LookupItemDto[];
   departmentId: string;
   departmentName: string;
   fullName: string;
   email: string;
   amka?: string | null;
+  /** Same as departmentName — derived from the specialty by the API. */
   specialty: string;
   licenseNumber: string;
   isActive: boolean;
@@ -55,18 +64,20 @@ export interface FullDoctorDto {
 export interface DoctorCreateRequest {
   email: string;
   fullName: string;
+  /** Main branch. */
   clinicId: string;
+  /** Every branch the doctor works at; the main branch is added if missing. */
+  clinicIds?: string[];
   departmentId: string;
   amka?: string;
-  specialty: string;
   licenseNumber: string;
 }
 
 export interface DoctorUpdateRequest {
   clinicId: string;
+  clinicIds?: string[];
   departmentId: string;
   amka?: string;
-  specialty: string;
   licenseNumber: string;
 }
 
@@ -307,7 +318,8 @@ export const updateDoctorSchedule = (id: string, payload: DoctorScheduleUpdateRe
 export const deleteDoctorSchedule = (id: string) =>
   axios.delete(`${API_BASE_URL}/DoctorSchedules/${id}`);
 
-export const getLookupDepartments = (clinicId: string) =>
+// With clinicId: only the specialties that branch offers (has active doctors in).
+export const getLookupDepartments = (clinicId?: string) =>
   axios.get<LookupItemDto[]>(`${API_BASE_URL}/Lookups/Departments`, { params: { clinicId } });
 
 export const getLookupDoctors = (clinicId?: string, departmentId?: string) =>
@@ -331,8 +343,9 @@ export const updateUserRoles = (id: string, roleIds: number[]) =>
 export const updateUserStatus = (id: string, isActive: boolean) =>
   axios.put(`${API_BASE_URL}/Users/${id}/Status`, { isActive });
 
-export const getDoctorAvailability = (doctorId: string, isoDate: string) =>
-  axios.get<DoctorAvailabilitySlotDto[]>(`${API_BASE_URL}/Doctors/${doctorId}/Availability`, { params: { date: isoDate } });
+// With clinicId: only the doctor's schedule at that branch (they may work at several).
+export const getDoctorAvailability = (doctorId: string, isoDate: string, clinicId?: string) =>
+  axios.get<DoctorAvailabilitySlotDto[]>(`${API_BASE_URL}/Doctors/${doctorId}/Availability`, { params: { date: isoDate, clinicId } });
 
 export const searchPatients = (search: string, take?: number) =>
   axios.get<PatientDto[]>(`${API_BASE_URL}/Patients`, { params: { ...(search ? { search } : {}), ...(take ? { take } : {}) } });

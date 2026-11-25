@@ -56,10 +56,11 @@ namespace HospitalReservationsAPI.Controllers
             }
             else if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                // "Ραντεβού (εποπτεία κλινικής)" — a ClinicManager only ever
-                // supervises their own clinic, regardless of what clinicId they pass.
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(a => a.ClinicId == ownClinicId);
+                // "Ραντεβού (εποπτεία υποκαταστήματος)" — a ClinicManager only ever
+                // supervises their own branches; clinicId can narrow within them.
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(a => ownClinicIds.Contains(a.ClinicId));
+                if (clinicId.HasValue) query = query.Where(a => a.ClinicId == clinicId);
                 if (doctorId.HasValue) query = query.Where(a => a.DoctorId == doctorId);
                 if (patientId.HasValue) query = query.Where(a => a.PatientId == patientId);
             }
@@ -145,9 +146,12 @@ namespace HospitalReservationsAPI.Controllers
 
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (request.ClinicId != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(request.ClinicId)) return Forbid();
             }
+
+            if (!await _db.DoctorClinics.AnyAsync(dc => dc.DoctorId == request.DoctorId && dc.ClinicId == request.ClinicId))
+                return BadRequest("Ο γιατρός δεν δουλεύει σε αυτό το υποκατάστημα.");
 
             var appointment = new Appointment
             {
@@ -212,8 +216,8 @@ namespace HospitalReservationsAPI.Controllers
 
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (appointment.ClinicId != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(appointment.ClinicId)) return Forbid();
             }
 
             if (request.AppointmentStatusId == CancelledStatusId && !User.IsInRole("Admin") && !User.IsInRole("SuperUser"))
@@ -272,8 +276,8 @@ namespace HospitalReservationsAPI.Controllers
 
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (appointment.ClinicId != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(appointment.ClinicId)) return Forbid();
             }
 
             if (!User.IsInRole("Admin") && !User.IsInRole("SuperUser"))

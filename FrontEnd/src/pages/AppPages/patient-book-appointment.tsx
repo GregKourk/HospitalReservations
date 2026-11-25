@@ -70,7 +70,7 @@ export default function PatientBookAppointmentPage() {
       .then(({ data }) => setPatientId(data.patientId))
       .catch(() => notify('Δεν βρέθηκε το προφίλ ασθενή σου — επικοινώνησε με τη γραμματεία.', 'error', 6000))
       .finally(() => setPatientLoading(false));
-    getClinics().then(({ data }) => setClinics(data)).catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+    getClinics().then(({ data }) => setClinics(data)).catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
     loadWaitlist();
   }, []);
 
@@ -90,11 +90,11 @@ export default function PatientBookAppointmentPage() {
     setSelectedSlot(null);
     if (!doctorId) { setSlots([]); return; }
     setSlotsLoading(true);
-    getDoctorAvailability(doctorId, toIsoDate(date))
+    getDoctorAvailability(doctorId, toIsoDate(date), clinicId ?? undefined)
       .then(({ data }) => setSlots(data))
       .catch(() => notify('Αποτυχία φόρτωσης διαθεσιμότητας.', 'error', 4000))
       .finally(() => setSlotsLoading(false));
-  }, [doctorId, date]);
+  }, [doctorId, date, clinicId]);
 
   async function handleBook() {
     if (!patientId) {
@@ -102,7 +102,7 @@ export default function PatientBookAppointmentPage() {
       return;
     }
     if (!clinicId || !departmentId || !doctorId || !selectedSlot) {
-      notify('Επίλεξε κλινική, τμήμα, γιατρό και ώρα.', 'warning', 3500);
+      notify('Επίλεξε υποκατάστημα, ειδικότητα, γιατρό και ώρα.', 'warning', 3500);
       return;
     }
     setBooking(true);
@@ -127,7 +127,7 @@ export default function PatientBookAppointmentPage() {
 
   async function handleJoinWaitlist() {
     if (!patientId || !clinicId || !departmentId || !doctorId) {
-      notify('Επίλεξε κλινική, τμήμα και γιατρό.', 'warning', 3500);
+      notify('Επίλεξε υποκατάστημα, ειδικότητα και γιατρό.', 'warning', 3500);
       return;
     }
     setJoiningWaitlist(true);
@@ -175,19 +175,19 @@ export default function PatientBookAppointmentPage() {
     <div className="p-6 space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Νέο Ραντεβού</h1>
-        <p className="text-sm text-muted-foreground">Επίλεξε κλινική, γιατρό και ώρα για να κλείσεις ραντεβού.</p>
+        <p className="text-sm text-muted-foreground">Επίλεξε υποκατάστημα, γιατρό και ώρα για να κλείσεις ραντεβού.</p>
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Κλινική / Γιατρός</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Υποκατάστημα / Γιατρός</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="mb-1.5 block">Κλινική</Label>
-            <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε κλινική" searchEnabled />
+            <Label className="mb-1.5 block">Υποκατάστημα</Label>
+            <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε υποκατάστημα" searchEnabled />
           </div>
           <div>
-            <Label className="mb-1.5 block">Τμήμα</Label>
-            <SelectBox dataSource={departments} valueExpr="id" displayExpr="text" value={departmentId} onValueChanged={(e) => setDepartmentId(e.value)} placeholder="Επίλεξε τμήμα" disabled={!clinicId} searchEnabled />
+            <Label className="mb-1.5 block">Ειδικότητα</Label>
+            <SelectBox dataSource={departments} valueExpr="id" displayExpr="text" value={departmentId} onValueChanged={(e) => setDepartmentId(e.value)} placeholder="Επίλεξε ειδικότητα" disabled={!clinicId} searchEnabled />
           </div>
           <div>
             <Label className="mb-1.5 block">Γιατρός</Label>

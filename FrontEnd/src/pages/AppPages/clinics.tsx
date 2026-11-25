@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataGrid, { Column, FilterRow, HeaderFilter, Pager, Paging, SearchPanel } from 'devextreme-react/data-grid';
+import SelectBox from 'devextreme-react/select-box';
 import notify from 'devextreme/ui/notify';
 import { confirm } from 'devextreme/ui/dialog';
 import { LayoutGrid, LoaderCircleIcon, Pencil, Trash2 } from 'lucide-react';
@@ -18,15 +19,18 @@ import {
   deleteClinic,
   getClinics,
   getErrorMessage,
+  getUsers,
   updateClinic,
+  UserDto,
 } from '@/services/hospital-api';
 
-const EMPTY_FORM: ClinicUpsertRequest = { name: '', address: '', phone: '' };
+const EMPTY_FORM: ClinicUpsertRequest = { name: '', address: '', phone: '', managerUserId: null };
 
 export default function ClinicsPage() {
   const { currentUser } = useAuth();
-  // A ClinicManager may only ever see/edit their own clinic — the backend
-  // already scopes GetAll to it and forbids Create/Delete outright.
+  // A ClinicManager may only ever see/edit their own branches (one or more) —
+  // the backend already scopes GetAll to them and forbids Create/Delete and
+  // reassigning the manager outright.
   const canCreateOrDelete = !currentUser || currentUser.roles.some((r) => r === 'Admin' || r === 'SuperUser');
 
   const [clinics, setClinics] = useState<ClinicDto[]>([]);
@@ -35,25 +39,35 @@ export default function ClinicsPage() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<ClinicDto | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
+  // Candidates for Υπεύθυνος: users holding the ClinicManager role. The same
+  // person may be picked for several branches.
+  const [managers, setManagers] = useState<UserDto[]>([]);
+
+  useEffect(() => {
+    if (!canCreateOrDelete) return;
+    getUsers()
+      .then(({ data }) => setManagers(data.filter((u) => u.isActive && u.roles.includes('ClinicManager'))))
+      .catch(() => notify('Αποτυχία φόρτωσης υπευθύνων.', 'error', 4000));
+  }, [canCreateOrDelete]);
 
   const load = () => {
     setLoading(true);
     getClinics(true)
       .then(({ data }) => setClinics(data))
-      .catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000))
+      .catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000))
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
 
   async function handleCreate() {
     if (!form.name.trim()) {
-      notify('Το όνομα κλινικής είναι υποχρεωτικό.', 'warning', 3000);
+      notify('Το όνομα υποκαταστήματος είναι υποχρεωτικό.', 'warning', 3000);
       return;
     }
     setSaving(true);
     try {
-      await createClinic({ name: form.name, address: form.address || undefined, phone: form.phone || undefined });
-      notify('Η κλινική δημιουργήθηκε.', 'success', 2500);
+      await createClinic({ name: form.name, address: form.address || undefined, phone: form.phone || undefined, managerUserId: form.managerUserId ?? null });
+      notify('Το υποκατάστημα δημιουργήθηκε.', 'success', 2500);
       setForm(EMPTY_FORM);
       load();
     } catch (err) {
@@ -71,8 +85,10 @@ export default function ClinicsPage() {
         name: editing.name,
         address: editing.address || undefined,
         phone: editing.phone || undefined,
+        // Always sent — omitting it would clear the manager (ignored for a ClinicManager).
+        managerUserId: editing.managerUserId ?? null,
       });
-      notify('Η κλινική ενημερώθηκε.', 'success', 2500);
+      notify('Το υποκατάστημα ενημερώθηκε.', 'success', 2500);
       setEditing(null);
       load();
     } catch (err) {
@@ -83,11 +99,11 @@ export default function ClinicsPage() {
   }
 
   async function handleDelete(clinic: ClinicDto) {
-    const ok = await confirm(`Διαγραφή κλινικής "${clinic.name}";`, 'Επιβεβαίωση');
+    const ok = await confirm(`Διαγραφή υποκαταστήματος "${clinic.name}";`, 'Επιβεβαίωση');
     if (!ok) return;
     try {
       await deleteClinic(clinic.clinicId);
-      notify('Η κλινική διαγράφηκε.', 'success', 2500);
+      notify('Το υποκατάστημα διαγράφηκε.', 'success', 2500);
       load();
     } catch (err) {
       notify(getErrorMessage(err, 'Η διαγραφή απέτυχε.'), 'error', 4500);
@@ -98,8 +114,8 @@ export default function ClinicsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Κλινικές</h1>
-          <p className="text-sm text-muted-foreground">Δημιουργία και διαχείριση κλινικών.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Υποκαταστήματα</h1>
+          <p className="text-sm text-muted-foreground">Δημιουργία και διαχείριση υποκαταστημάτων.</p>
         </div>
         <Button variant="outline" onClick={() => setSummaryOpen(true)}>
           <LayoutGrid className="h-3.5 w-3.5 mr-1.5" /> Συγκεντρωτική προβολή
@@ -108,7 +124,7 @@ export default function ClinicsPage() {
 
       {canCreateOrDelete && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Νέα κλινική</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Νέο υποκατάστημα</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div className="sm:col-span-2">
               <Label className="mb-1.5 block">Όνομα</Label>
@@ -127,13 +143,17 @@ export default function ClinicsPage() {
                 {saving ? <LoaderCircleIcon className="h-4 w-4 animate-spin" /> : 'Δημιουργία'}
               </Button>
             </div>
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5 block">Υπεύθυνος (προαιρετικό)</Label>
+              <ManagerSelect managers={managers} value={form.managerUserId ?? null} onChange={(v) => setForm((f) => ({ ...f, managerUserId: v }))} />
+            </div>
           </CardContent>
         </Card>
       )}
 
       <Card>
         <CardContent className="pt-6">
-          <DataGrid dataSource={clinics} keyExpr="clinicId" showBorders columnAutoWidth loadPanel={{ enabled: loading }} noDataText="Δεν υπάρχουν κλινικές.">
+          <DataGrid dataSource={clinics} keyExpr="clinicId" showBorders columnAutoWidth loadPanel={{ enabled: loading }} noDataText="Δεν υπάρχουν υποκαταστήματα.">
             <SearchPanel visible width={240} placeholder="Αναζήτηση..." />
             <FilterRow visible />
             <HeaderFilter visible />
@@ -142,6 +162,7 @@ export default function ClinicsPage() {
             <Column dataField="name" caption="Όνομα" />
             <Column dataField="address" caption="Διεύθυνση" />
             <Column dataField="phone" caption="Τηλέφωνο" width={140} />
+            <Column dataField="managerName" caption="Υπεύθυνος" calculateCellValue={(row: ClinicDto) => row.managerName ?? '—'} />
             <Column dataField="isActive" caption="Ενεργή" dataType="boolean" width={90} />
             <Column
               caption="Ενέργειες"
@@ -162,7 +183,7 @@ export default function ClinicsPage() {
       {editing && (
         <Dialog open onOpenChange={(open) => !open && setEditing(null)}>
           <DialogContent onInteractOutside={ignoreDevExtremeOverlayInteraction}>
-            <DialogHeader><DialogTitle>Επεξεργασία κλινικής</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Επεξεργασία υποκαταστήματος</DialogTitle></DialogHeader>
             <DialogBody className="space-y-4">
               <div>
                 <Label className="mb-1.5 block">Όνομα</Label>
@@ -176,6 +197,12 @@ export default function ClinicsPage() {
                 <Label className="mb-1.5 block">Τηλέφωνο</Label>
                 <Input value={editing.phone ?? ''} onChange={(e) => setEditing((v) => v && { ...v, phone: e.target.value })} />
               </div>
+              {canCreateOrDelete && (
+                <div>
+                  <Label className="mb-1.5 block">Υπεύθυνος</Label>
+                  <ManagerSelect managers={managers} value={editing.managerUserId ?? null} onChange={(v) => setEditing((e) => e && { ...e, managerUserId: v })} />
+                </div>
+              )}
             </DialogBody>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditing(null)}>Άκυρο</Button>
@@ -190,9 +217,9 @@ export default function ClinicsPage() {
       <SummaryDialog
         open={summaryOpen}
         onOpenChange={setSummaryOpen}
-        title="Συγκεντρωτική προβολή — Κλινικές"
+        title="Συγκεντρωτική προβολή — Υποκαταστήματα"
         entityType="ClinicsSummary"
-        fileBaseName="Κλινικές"
+        fileBaseName="Υποκαταστήματα"
         keyExpr="clinicId"
         dataSource={clinics}
         loading={loading}
@@ -200,8 +227,25 @@ export default function ClinicsPage() {
         <Column dataField="name" caption="Όνομα" />
         <Column dataField="address" caption="Διεύθυνση" />
         <Column dataField="phone" caption="Τηλέφωνο" />
+        <Column dataField="managerName" caption="Υπεύθυνος" />
         <Column dataField="isActive" caption="Ενεργή" dataType="boolean" />
       </SummaryDialog>
     </div>
+  );
+}
+
+function ManagerSelect({ managers, value, onChange }: { managers: UserDto[]; value: string | null; onChange: (v: string | null) => void }) {
+  return (
+    <SelectBox
+      dataSource={managers}
+      valueExpr="userId"
+      displayExpr="fullName"
+      value={value}
+      onValueChanged={(e) => onChange(e.value ?? null)}
+      placeholder="Χωρίς υπεύθυνο"
+      showClearButton
+      searchEnabled
+      noDataText="Δεν υπάρχουν χρήστες με ρόλο Υπεύθυνος Υποκαταστήματος."
+    />
   );
 }

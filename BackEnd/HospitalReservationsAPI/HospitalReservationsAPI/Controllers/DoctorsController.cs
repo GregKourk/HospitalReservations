@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace HospitalReservationsAPI.Controllers
 {
@@ -28,30 +29,16 @@ namespace HospitalReservationsAPI.Controllers
 
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(d => d.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(d => d.DoctorClinics.Any(dc => ownClinicIds.Contains(dc.ClinicId)));
             }
-            else if (clinicId.HasValue)
-            {
-                query = query.Where(d => d.ClinicId == clinicId);
-            }
+            // "Works at this branch" — main branch or any other (026_doctor_clinics.sql).
+            if (clinicId.HasValue)
+                query = query.Where(d => d.DoctorClinics.Any(dc => dc.ClinicId == clinicId));
             if (departmentId.HasValue) query = query.Where(d => d.DepartmentId == departmentId);
 
             var doctors = await query
-                .Select(d => new DoctorDto
-                {
-                    DoctorId = d.DoctorId,
-                    ClinicId = d.ClinicId,
-                    ClinicName = d.Clinic.Name,
-                    DepartmentId = d.DepartmentId,
-                    DepartmentName = d.Department.Name,
-                    FullName = d.User.FullName,
-                    Email = d.User.Email,
-                    Amka = d.Amka,
-                    Specialty = d.Specialty,
-                    LicenseNumber = d.LicenseNumber,
-                    IsActive = d.IsActive
-                })
+                .Select(ToDto)
                 .OrderBy(d => d.FullName)
                 .ToListAsync();
 
@@ -62,20 +49,7 @@ namespace HospitalReservationsAPI.Controllers
         public async Task<ActionResult<DoctorDto>> GetById(Guid id)
         {
             var doctor = await _db.Doctors.Where(d => d.DoctorId == id && !d.IsDeleted)
-                .Select(d => new DoctorDto
-                {
-                    DoctorId = d.DoctorId,
-                    ClinicId = d.ClinicId,
-                    ClinicName = d.Clinic.Name,
-                    DepartmentId = d.DepartmentId,
-                    DepartmentName = d.Department.Name,
-                    FullName = d.User.FullName,
-                    Email = d.User.Email,
-                    Amka = d.Amka,
-                    Specialty = d.Specialty,
-                    LicenseNumber = d.LicenseNumber,
-                    IsActive = d.IsActive
-                })
+                .Select(ToDto)
                 .FirstOrDefaultAsync();
 
             return doctor is null ? NotFound() : Ok(doctor);
@@ -89,20 +63,7 @@ namespace HospitalReservationsAPI.Controllers
         {
             var userId = User.GetUserId();
             var doctor = await _db.Doctors.Where(d => d.UserId == userId && !d.IsDeleted)
-                .Select(d => new DoctorDto
-                {
-                    DoctorId = d.DoctorId,
-                    ClinicId = d.ClinicId,
-                    ClinicName = d.Clinic.Name,
-                    DepartmentId = d.DepartmentId,
-                    DepartmentName = d.Department.Name,
-                    FullName = d.User.FullName,
-                    Email = d.User.Email,
-                    Amka = d.Amka,
-                    Specialty = d.Specialty,
-                    LicenseNumber = d.LicenseNumber,
-                    IsActive = d.IsActive
-                })
+                .Select(ToDto)
                 .FirstOrDefaultAsync();
 
             return doctor is null ? NotFound() : Ok(doctor);
@@ -112,7 +73,14 @@ namespace HospitalReservationsAPI.Controllers
         [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
         public async Task<ActionResult<Guid>> Create(DoctorCreateRequest request)
         {
-            if (await GetClinicScopeErrorAsync(request.ClinicId) is { } scopeError) return scopeError;
+            var clinicIds = NormalizeClinicIds(request.ClinicId, request.ClinicIds);
+            foreach (var cid in clinicIds)
+                if (await GetClinicScopeErrorAsync(cid) is { } scopeError) return scopeError;
+            if (await _db.Clinics.CountAsync(c => clinicIds.Contains(c.ClinicId) && !c.IsDeleted) != clinicIds.Count)
+                return BadRequest("Κάποιο από τα υποκαταστήματα δεν βρέθηκε.");
+
+            var specialty = await GetActiveSpecialtyNameAsync(request.DepartmentId);
+            if (specialty is null) return BadRequest("Η ειδικότητα δεν βρέθηκε.");
 
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user is null)
@@ -142,9 +110,11 @@ namespace HospitalReservationsAPI.Controllers
                 ClinicId = request.ClinicId,
                 DepartmentId = request.DepartmentId,
                 Amka = request.Amka,
-                Specialty = request.Specialty,
+                Specialty = specialty,
                 LicenseNumber = request.LicenseNumber
             };
+            foreach (var cid in clinicIds)
+                doctor.DoctorClinics.Add(new DoctorClinic { DoctorId = doctor.DoctorId, ClinicId = cid });
             _db.Doctors.Add(doctor);
 
             try
@@ -158,7 +128,7 @@ namespace HospitalReservationsAPI.Controllers
                 return Conflict("Ο αριθμός άδειας ή το ΑΜΚΑ χρησιμοποιείται ήδη από άλλον γιατρό.");
             }
 
-            await AuditLogger.LogAsync(_db, HttpContext, "Create", "Doctor", doctor.DoctorId.ToString(), after: new { request.Email, request.ClinicId, request.DepartmentId, request.LicenseNumber });
+            await AuditLogger.LogAsync(_db, HttpContext, "Create", "Doctor", doctor.DoctorId.ToString(), after: new { request.Email, request.ClinicId, ClinicIds = clinicIds, request.DepartmentId, request.LicenseNumber });
 
             return CreatedAtAction(nameof(GetById), new { id = doctor.DoctorId }, doctor.DoctorId);
         }
@@ -167,11 +137,37 @@ namespace HospitalReservationsAPI.Controllers
         [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
         public async Task<IActionResult> Update(Guid id, DoctorUpdateRequest request)
         {
-            var doctor = await _db.Doctors.FirstOrDefaultAsync(d => d.DoctorId == id && !d.IsDeleted);
+            var doctor = await _db.Doctors.Include(d => d.DoctorClinics).FirstOrDefaultAsync(d => d.DoctorId == id && !d.IsDeleted);
             if (doctor is null) return NotFound();
 
-            if (await GetClinicScopeErrorAsync(doctor.ClinicId) is { } scopeError1) return scopeError1;
-            if (await GetClinicScopeErrorAsync(request.ClinicId) is { } scopeError2) return scopeError2;
+            var currentIds = doctor.DoctorClinics.Select(dc => dc.ClinicId).ToHashSet();
+            var requestedIds = NormalizeClinicIds(request.ClinicId, request.ClinicIds);
+
+            // A ClinicManager may edit a doctor who works at any of their
+            // branches, but only add/remove their own branches (memberships at
+            // other managers' branches are kept as they are), and may only move
+            // the main branch between branches they manage.
+            if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
+            {
+                var own = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!currentIds.Any(own.Contains)) return Forbid();
+                if (request.ClinicId != doctor.ClinicId && (!own.Contains(doctor.ClinicId) || !own.Contains(request.ClinicId)))
+                    return Forbid();
+                requestedIds = requestedIds.Where(own.Contains)
+                    .Concat(currentIds.Where(cid => !own.Contains(cid)))
+                    .Append(request.ClinicId)
+                    .Distinct().ToList();
+            }
+
+            if (await _db.Clinics.CountAsync(c => requestedIds.Contains(c.ClinicId) && !c.IsDeleted) != requestedIds.Count)
+                return BadRequest("Κάποιο από τα υποκαταστήματα δεν βρέθηκε.");
+
+            var removedIds = currentIds.Where(cid => !requestedIds.Contains(cid)).ToList();
+            if (removedIds.Count > 0 && await _db.DoctorSchedules.AnyAsync(s => s.DoctorId == id && s.IsActive && removedIds.Contains(s.ClinicId)))
+                return Conflict("Ο γιατρός έχει ενεργό πρόγραμμα σε υποκατάστημα που αφαιρείται. Απενεργοποίησε πρώτα το πρόγραμμα εκεί.");
+
+            var specialty = await GetActiveSpecialtyNameAsync(request.DepartmentId);
+            if (specialty is null) return BadRequest("Η ειδικότητα δεν βρέθηκε.");
 
             if (!string.IsNullOrWhiteSpace(request.Amka) &&
                 await _db.Doctors.AnyAsync(d => !d.IsDeleted && d.DoctorId != id && d.Amka == request.Amka))
@@ -179,14 +175,19 @@ namespace HospitalReservationsAPI.Controllers
                 return Conflict("Υπάρχει ήδη γιατρός με αυτό το ΑΜΚΑ.");
             }
 
-            var before = new { doctor.ClinicId, doctor.DepartmentId, doctor.Amka, doctor.Specialty, doctor.LicenseNumber };
+            var before = new { doctor.ClinicId, ClinicIds = currentIds.ToList(), doctor.DepartmentId, doctor.Amka, doctor.Specialty, doctor.LicenseNumber };
 
             doctor.ClinicId = request.ClinicId;
             doctor.DepartmentId = request.DepartmentId;
             doctor.Amka = request.Amka;
-            doctor.Specialty = request.Specialty;
+            doctor.Specialty = specialty;
             doctor.LicenseNumber = request.LicenseNumber;
             doctor.UpdatedAt = DateTimeOffset.Now;
+
+            foreach (var dc in doctor.DoctorClinics.Where(dc => removedIds.Contains(dc.ClinicId)).ToList())
+                doctor.DoctorClinics.Remove(dc);
+            foreach (var cid in requestedIds.Where(cid => !currentIds.Contains(cid)))
+                doctor.DoctorClinics.Add(new DoctorClinic { DoctorId = doctor.DoctorId, ClinicId = cid });
 
             try
             {
@@ -206,10 +207,18 @@ namespace HospitalReservationsAPI.Controllers
         [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var doctor = await _db.Doctors.FirstOrDefaultAsync(d => d.DoctorId == id && !d.IsDeleted);
+            var doctor = await _db.Doctors.Include(d => d.DoctorClinics).FirstOrDefaultAsync(d => d.DoctorId == id && !d.IsDeleted);
             if (doctor is null) return NotFound();
 
-            if (await GetClinicScopeErrorAsync(doctor.ClinicId) is { } scopeError) return scopeError;
+            // Deleting removes the doctor from every branch, so a ClinicManager
+            // may only do it when all of the doctor's branches are theirs.
+            if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
+            {
+                var own = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!doctor.DoctorClinics.Any(dc => own.Contains(dc.ClinicId))) return Forbid();
+                if (!doctor.DoctorClinics.All(dc => own.Contains(dc.ClinicId)))
+                    return Conflict("Ο γιατρός δουλεύει και σε υποκατάστημα που δεν διαχειρίζεσαι. Αφαίρεσε μόνο το δικό σου υποκατάστημα από τα στοιχεία του.");
+            }
 
             doctor.IsDeleted = true;
             doctor.IsActive = false;
@@ -223,9 +232,11 @@ namespace HospitalReservationsAPI.Controllers
 
         // Free slots for one calendar day: the doctor's recurring weekly template
         // (DoctorSchedules) minus whatever is already booked that day. Callers
-        // build the booking screen's slot picker directly from this.
+        // build the booking screen's slot picker directly from this. With
+        // clinicId, only that branch's schedules count (a doctor may work at
+        // several); existing bookings at any branch still block a slot.
         [HttpGet("{id:guid}/Availability")]
-        public async Task<ActionResult<List<DoctorAvailabilitySlotDto>>> GetAvailability(Guid id, [FromQuery] DateOnly date)
+        public async Task<ActionResult<List<DoctorAvailabilitySlotDto>>> GetAvailability(Guid id, [FromQuery] DateOnly date, [FromQuery] Guid? clinicId)
         {
             // A holiday blocks every doctor that day regardless of their own
             // weekly schedule — checked before touching DoctorSchedules at all.
@@ -241,6 +252,7 @@ namespace HospitalReservationsAPI.Controllers
             var schedules = await _db.DoctorSchedules
                 .Where(s => s.DoctorId == id
                     && s.IsActive
+                    && (!clinicId.HasValue || s.ClinicId == clinicId)
                     && s.DayOfWeek == dayOfWeek
                     && s.EffectiveFrom <= dayAsDate
                     && (s.EffectiveTo == null || s.EffectiveTo >= dayAsDate))
@@ -285,11 +297,39 @@ namespace HospitalReservationsAPI.Controllers
 
         private bool IsHigherPrivileged() => User.IsInRole("Admin") || User.IsInRole("SuperUser");
 
+        // Doctors.Specialty is no longer typed in — it mirrors the name of the
+        // doctor's specialty from the shared list (025_shared_specialties.sql).
+        private Task<string?> GetActiveSpecialtyNameAsync(Guid departmentId) =>
+            _db.Departments.Where(d => d.DepartmentId == departmentId && d.IsActive).Select(d => (string?)d.Name).FirstOrDefaultAsync();
+
         private async Task<ActionResult?> GetClinicScopeErrorAsync(Guid clinicId)
         {
             if (!User.IsInRole("ClinicManager") || IsHigherPrivileged()) return null;
-            var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-            return clinicId == ownClinicId ? null : Forbid();
+            var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+            return ownClinicIds.Contains(clinicId) ? null : Forbid();
         }
+
+        // Every branch the doctor works at, always including the main one.
+        private static List<Guid> NormalizeClinicIds(Guid mainClinicId, List<Guid>? clinicIds) =>
+            (clinicIds ?? new List<Guid>()).Append(mainClinicId).Where(cid => cid != Guid.Empty).Distinct().ToList();
+
+        private static readonly Expression<Func<Doctor, DoctorDto>> ToDto = d => new DoctorDto
+        {
+            DoctorId = d.DoctorId,
+            ClinicId = d.ClinicId,
+            ClinicName = d.Clinic.Name,
+            Clinics = d.DoctorClinics
+                .OrderBy(dc => dc.ClinicId != d.ClinicId).ThenBy(dc => dc.Clinic!.Name)
+                .Select(dc => new LookupItemDto { Id = dc.ClinicId, Text = dc.Clinic!.Name })
+                .ToList(),
+            DepartmentId = d.DepartmentId,
+            DepartmentName = d.Department.Name,
+            FullName = d.User.FullName,
+            Email = d.User.Email,
+            Amka = d.Amka,
+            Specialty = d.Specialty,
+            LicenseNumber = d.LicenseNumber,
+            IsActive = d.IsActive
+        };
     }
 }

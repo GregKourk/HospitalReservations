@@ -81,15 +81,15 @@ export default function AppointmentsPage() {
     getClinics().then(({ data }) => {
       setClinics(data);
       if (data.length === 1) setClinicId(data[0].clinicId);
-    }).catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+    }).catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
     getAppointmentStatuses().then(({ data }) => setStatuses(data)).catch(() => {});
   }, []);
 
   useEffect(() => {
     setDepartmentId(null);
     setDoctorId(null);
-    if (!clinicId) { setDepartments([]); return; }
-    getLookupDepartments(clinicId).then(({ data }) => setDepartments(data)).catch(() => {});
+    // No branch picked: the whole shared specialty list (narrows doctors across all branches).
+    getLookupDepartments(clinicId ?? undefined).then(({ data }) => setDepartments(data)).catch(() => {});
   }, [clinicId]);
 
   useEffect(() => {
@@ -223,28 +223,27 @@ export default function AppointmentsPage() {
             {!isDoctorOnly && (
               <>
                 <div>
-                  <Label className="mb-1.5 block">Κλινική</Label>
+                  <Label className="mb-1.5 block">Υποκατάστημα</Label>
                   <SelectBox
                     dataSource={clinics}
                     valueExpr="clinicId"
                     displayExpr="name"
                     value={clinicId}
                     onValueChanged={(e) => setClinicId(e.value)}
-                    placeholder="Όλες οι κλινικές"
+                    placeholder="Όλα τα υποκαταστήματα"
                     showClearButton
                     searchEnabled
                   />
                 </div>
                 <div>
-                  <Label className="mb-1.5 block">Τμήμα</Label>
+                  <Label className="mb-1.5 block">Ειδικότητα</Label>
                   <SelectBox
                     dataSource={departments}
                     valueExpr="id"
                     displayExpr="text"
                     value={departmentId}
                     onValueChanged={(e) => setDepartmentId(e.value)}
-                    placeholder="Όλα τα τμήματα"
-                    disabled={!clinicId}
+                    placeholder="Όλες οι ειδικότητες"
                     showClearButton
                     searchEnabled
                   />

@@ -42,8 +42,9 @@ namespace HospitalReservationsAPI.Controllers
             }
             else if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(w => w.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(w => ownClinicIds.Contains(w.ClinicId));
+                if (clinicId.HasValue) query = query.Where(w => w.ClinicId == clinicId);
                 if (doctorId.HasValue) query = query.Where(w => w.DoctorId == doctorId);
             }
             else if (IsPrivilegedStaff())
@@ -93,8 +94,8 @@ namespace HospitalReservationsAPI.Controllers
             }
             else if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (request.ClinicId != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(request.ClinicId)) return Forbid();
             }
 
             var alreadyWaiting = await _db.AppointmentWaitlistEntries.AnyAsync(w =>
@@ -134,8 +135,8 @@ namespace HospitalReservationsAPI.Controllers
             }
             else if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                if (entry.ClinicId != ownClinicId) return Forbid();
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                if (!ownClinicIds.Contains(entry.ClinicId)) return Forbid();
             }
 
             if (entry.Status == "Booked" || entry.Status == "Cancelled")

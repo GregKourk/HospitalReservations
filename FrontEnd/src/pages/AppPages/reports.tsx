@@ -73,7 +73,7 @@ export default function ReportsPage() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Αναφορές</h1>
-        <p className="text-sm text-muted-foreground">Στατιστικά ανά κλινική/γιατρό και ακυρώσεις/μη προσέλευση για το επιλεγμένο διάστημα.</p>
+        <p className="text-sm text-muted-foreground">Στατιστικά ανά υποκατάστημα/γιατρό και ακυρώσεις/μη προσέλευση για το επιλεγμένο διάστημα.</p>
       </div>
 
       <Card>
@@ -95,8 +95,8 @@ export default function ReportsPage() {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4">
-          <CardTitle className="text-base">Στατιστικά ανά Κλινική</CardTitle>
-          <ExportButtons gridRef={clinicGridRef} title="Στατιστικά ανά Κλινική" fileBaseName="Στατιστικά Κλινικών" entityType="ClinicStatsReport" />
+          <CardTitle className="text-base">Στατιστικά ανά Υποκατάστημα</CardTitle>
+          <ExportButtons gridRef={clinicGridRef} title="Στατιστικά ανά Υποκατάστημα" fileBaseName="Στατιστικά Υποκαταστημάτων" entityType="ClinicStatsReport" />
         </CardHeader>
         <CardContent>
           <DataGrid ref={clinicGridRef} dataSource={clinicStats} keyExpr="clinicId" showBorders columnAutoWidth loadPanel={{ enabled: loading }} noDataText="Δεν υπάρχουν δεδομένα για αυτό το διάστημα.">
@@ -104,7 +104,7 @@ export default function ReportsPage() {
             <HeaderFilter visible />
             <Paging defaultPageSize={10} />
             <Pager visible showPageSizeSelector allowedPageSizes={[10, 20, 50]} showInfo showNavigationButtons />
-            <Column dataField="clinicName" caption="Κλινική" />
+            <Column dataField="clinicName" caption="Υποκατάστημα" />
             <Column dataField="total" caption="Σύνολο" width={100} />
             <Column dataField="completed" caption="Ολοκληρωμένα" width={130} />
             <Column dataField="cancelled" caption="Ακυρωμένα" width={120} />
@@ -126,7 +126,7 @@ export default function ReportsPage() {
             <Paging defaultPageSize={10} />
             <Pager visible showPageSizeSelector allowedPageSizes={[10, 20, 50]} showInfo showNavigationButtons />
             <Column dataField="doctorName" caption="Γιατρός" />
-            <Column dataField="clinicName" caption="Κλινική" />
+            <Column dataField="clinicName" caption="Υποκατάστημα" />
             <Column dataField="total" caption="Σύνολο" width={100} />
             <Column dataField="completed" caption="Ολοκληρωμένα" width={130} />
             <Column dataField="cancelled" caption="Ακυρωμένα" width={120} />
@@ -148,7 +148,7 @@ export default function ReportsPage() {
             <Paging defaultPageSize={10} />
             <Pager visible showPageSizeSelector allowedPageSizes={[10, 20, 50]} showInfo showNavigationButtons />
             <Column dataField="scheduledStart" caption="Ημ/νία & Ώρα" width={150} calculateCellValue={(row: CancellationNoShowDto) => format(new Date(row.scheduledStart), 'dd/MM/yyyy HH:mm')} />
-            <Column dataField="clinicName" caption="Κλινική" />
+            <Column dataField="clinicName" caption="Υποκατάστημα" />
             <Column dataField="doctorName" caption="Γιατρός" />
             <Column dataField="patientName" caption="Ασθενής" />
             <Column

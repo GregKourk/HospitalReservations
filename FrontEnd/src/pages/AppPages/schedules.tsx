@@ -53,7 +53,9 @@ export default function SchedulesPage() {
   const [doctorId, setDoctorId] = useState<string | null>(null);
 
   const effectiveDoctorId = isDoctor ? ownDoctor?.doctorId ?? null : doctorId;
-  const effectiveClinicId = isDoctor ? ownDoctor?.clinicId ?? null : clinicId;
+  // A doctor may work at several branches: new schedule rows go to the picked
+  // one, defaulting to their main branch.
+  const effectiveClinicId = isDoctor ? clinicId ?? ownDoctor?.clinicId ?? null : clinicId;
 
   const [schedules, setSchedules] = useState<DoctorScheduleDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,9 +71,13 @@ export default function SchedulesPage() {
   // ── who am I managing? ───────────────────────────────────────────────────
   useEffect(() => {
     if (isDoctor) {
-      getOwnDoctor().then(({ data }) => setOwnDoctor(data)).catch(() => notify('Δεν βρέθηκε ο λογαριασμός γιατρού.', 'error', 4000));
+      getOwnDoctor().then(({ data }) => {
+        setOwnDoctor(data);
+        setClinics((data.clinics ?? []).map((c) => ({ clinicId: c.id, name: c.text, isActive: true })));
+        setClinicId(data.clinicId);
+      }).catch(() => notify('Δεν βρέθηκε ο λογαριασμός γιατρού.', 'error', 4000));
     } else {
-      getClinics().then(({ data }) => setClinics(data)).catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+      getClinics().then(({ data }) => setClinics(data)).catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
     }
   }, [isDoctor]);
 
@@ -95,7 +101,7 @@ export default function SchedulesPage() {
 
   async function handleCreate() {
     if (!effectiveDoctorId || !effectiveClinicId) {
-      notify(isDoctor ? 'Δεν βρέθηκε ο λογαριασμός γιατρού.' : 'Επίλεξε κλινική και γιατρό.', 'warning', 3500);
+      notify(isDoctor ? 'Δεν βρέθηκε ο λογαριασμός γιατρού.' : 'Επίλεξε υποκατάστημα και γιατρό.', 'warning', 3500);
       return;
     }
     if (form.dayOfWeek.length === 0) {
@@ -225,11 +231,11 @@ export default function SchedulesPage() {
 
       {!isDoctor && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Κλινική / Γιατρός</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Υποκατάστημα / Γιατρός</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
             <div>
-              <Label className="mb-1.5 block">Κλινική</Label>
-              <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε κλινική" searchEnabled />
+              <Label className="mb-1.5 block">Υποκατάστημα</Label>
+              <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} placeholder="Επίλεξε υποκατάστημα" searchEnabled />
             </div>
             <div>
               <Label className="mb-1.5 block">Γιατρός</Label>
@@ -242,7 +248,15 @@ export default function SchedulesPage() {
       {isDoctor && ownDoctor && (
         <Card>
           <CardContent className="pt-6 text-sm">
-            <span className="text-muted-foreground">Πρόγραμμα για:</span> <span className="font-medium">{ownDoctor.fullName}</span> — {ownDoctor.clinicName} / {ownDoctor.departmentName}
+            <span className="text-muted-foreground">Πρόγραμμα για:</span> <span className="font-medium">{ownDoctor.fullName}</span> — {ownDoctor.departmentName}
+            {clinics.length > 1 ? (
+              <div className="mt-3 max-w-xs">
+                <Label className="mb-1.5 block">Υποκατάστημα για νέο πρόγραμμα</Label>
+                <SelectBox dataSource={clinics} valueExpr="clinicId" displayExpr="name" value={clinicId} onValueChanged={(e) => setClinicId(e.value)} />
+              </div>
+            ) : (
+              <> / {ownDoctor.clinicName}</>
+            )}
           </CardContent>
         </Card>
       )}
@@ -305,6 +319,7 @@ export default function SchedulesPage() {
                 <HeaderFilter visible />
                 <Paging defaultPageSize={10} />
                 <Pager visible showPageSizeSelector allowedPageSizes={[10, 20, 50]} showInfo showNavigationButtons />
+                <Column dataField="clinicName" caption="Υποκατάστημα" />
                 <Column dataField="dayOfWeek" caption="Ημέρα" width={110} calculateCellValue={(row: DoctorScheduleDto) => dayLabel(row.dayOfWeek)} />
                 <Column caption="Ώρες" width={130} calculateCellValue={(row: DoctorScheduleDto) => `${toTimeInput(row.startTime)}–${toTimeInput(row.endTime)}`} />
                 <Column dataField="slotMinutes" caption="Slot (λεπτά)" width={110} />
@@ -394,7 +409,7 @@ export default function SchedulesPage() {
         dataSource={allSchedules}
         loading={summaryLoading}
       >
-        <Column dataField="clinicName" caption="Κλινική" />
+        <Column dataField="clinicName" caption="Υποκατάστημα" />
         <Column dataField="doctorName" caption="Γιατρός" />
         <Column dataField="dayOfWeek" caption="Ημέρα" calculateCellValue={(row: DoctorScheduleDto) => dayLabel(row.dayOfWeek)} />
         <Column caption="Ώρες" calculateCellValue={(row: DoctorScheduleDto) => `${toTimeInput(row.startTime)}–${toTimeInput(row.endTime)}`} />

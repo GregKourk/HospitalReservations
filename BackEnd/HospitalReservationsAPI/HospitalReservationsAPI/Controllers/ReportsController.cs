@@ -37,8 +37,8 @@ namespace HospitalReservationsAPI.Controllers
             var query = _db.Appointments.Where(a => !a.IsDeleted && a.ScheduledStart >= start && a.ScheduledStart < end);
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(a => a.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(a => ownClinicIds.Contains(a.ClinicId));
             }
 
             var stats = await query
@@ -69,8 +69,8 @@ namespace HospitalReservationsAPI.Controllers
             var query = _db.Appointments.Where(a => !a.IsDeleted && a.ScheduledStart >= start && a.ScheduledStart < end);
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(a => a.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(a => ownClinicIds.Contains(a.ClinicId));
             }
 
             var stats = await query
@@ -103,8 +103,8 @@ namespace HospitalReservationsAPI.Controllers
                 && (a.AppointmentStatusId == CancelledStatusId || a.AppointmentStatusId == NoShowStatusId));
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(a => a.ClinicId == ownClinicId);
+                var ownClinicIds = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                query = query.Where(a => ownClinicIds.Contains(a.ClinicId));
             }
 
             var results = await query

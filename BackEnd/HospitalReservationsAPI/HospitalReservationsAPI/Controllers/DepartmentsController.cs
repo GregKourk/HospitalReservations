@@ -7,6 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalReservationsAPI.Controllers
 {
+    // Specialties ("Ειδικότητες"). Since 025_shared_specialties.sql this is one
+    // list shared by every branch, so only Admin/SuperUser may change it — a
+    // ClinicManager renaming "Καρδιολογία" would rename it for every branch.
+    // Which branches offer a specialty follows from where its doctors work.
     [ApiController]
     [Route("[controller]")]
     [EnableCors]
@@ -20,30 +24,28 @@ namespace HospitalReservationsAPI.Controllers
             _db = db;
         }
 
+        // clinicId (or a ClinicManager's own clinic) narrows only DoctorCount,
+        // not the list itself: every branch can pick from every specialty.
         [HttpGet]
         public async Task<ActionResult<List<DepartmentDto>>> GetAll([FromQuery] Guid? clinicId)
         {
-            var query = _db.Departments.Where(d => d.IsActive);
-
+            // null = count everywhere; otherwise only doctors working at these branches.
+            List<Guid>? scope = clinicId.HasValue ? new List<Guid> { clinicId.Value } : null;
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
             {
-                var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-                query = query.Where(d => d.ClinicId == ownClinicId);
-            }
-            else if (clinicId.HasValue)
-            {
-                query = query.Where(d => d.ClinicId == clinicId);
+                var own = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
+                scope = scope is null ? own : scope.Where(own.Contains).ToList();
             }
 
-            var departments = await query
-                .OrderBy(d => d.Clinic.Name).ThenBy(d => d.Name)
+            var departments = await _db.Departments
+                .Where(d => d.IsActive)
+                .OrderBy(d => d.Name)
                 .Select(d => new DepartmentDto
                 {
                     DepartmentId = d.DepartmentId,
-                    ClinicId = d.ClinicId,
-                    ClinicName = d.Clinic.Name,
                     Name = d.Name,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive,
+                    DoctorCount = d.Doctors.Count(doc => doc.IsActive && !doc.IsDeleted && (scope == null || doc.DoctorClinics.Any(dc => scope.Contains(dc.ClinicId))))
                 })
                 .ToListAsync();
 
@@ -57,10 +59,9 @@ namespace HospitalReservationsAPI.Controllers
                 .Select(d => new DepartmentDto
                 {
                     DepartmentId = d.DepartmentId,
-                    ClinicId = d.ClinicId,
-                    ClinicName = d.Clinic.Name,
                     Name = d.Name,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive,
+                    DoctorCount = d.Doctors.Count(doc => doc.IsActive && !doc.IsDeleted)
                 })
                 .FirstOrDefaultAsync();
 
@@ -68,48 +69,62 @@ namespace HospitalReservationsAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
+        [Authorize(Roles = "Admin,SuperUser")]
         public async Task<ActionResult<DepartmentDto>> Create(DepartmentUpsertRequest request)
         {
-            if (await GetClinicScopeErrorAsync(request.ClinicId) is { } error) return error;
+            var name = request.Name?.Trim() ?? string.Empty;
+            if (name.Length == 0) return BadRequest("Το όνομα ειδικότητας είναι υποχρεωτικό.");
 
-            var department = new Department
+            // Names are unique across the table (UQ_Departments_Name), active
+            // or not — re-creating a deleted specialty brings the old row back
+            // instead of failing on the unique constraint.
+            var existing = await _db.Departments.FirstOrDefaultAsync(d => d.Name == name);
+            if (existing is { IsActive: true })
+                return Conflict("Υπάρχει ήδη ειδικότητα με αυτό το όνομα.");
+
+            Department department;
+            if (existing is not null)
             {
-                ClinicId = request.ClinicId,
-                Name = request.Name
-            };
+                existing.IsActive = true;
+                department = existing;
+            }
+            else
+            {
+                department = new Department { Name = name };
+                _db.Departments.Add(department);
+            }
 
-            _db.Departments.Add(department);
             await _db.SaveChangesAsync();
-            await AuditLogger.LogAsync(_db, HttpContext, "Create", "Department", department.DepartmentId.ToString(), after: request);
+            await AuditLogger.LogAsync(_db, HttpContext, existing is null ? "Create" : "Restore", "Department", department.DepartmentId.ToString(), after: request);
 
             return CreatedAtAction(nameof(GetById), new { id = department.DepartmentId }, new DepartmentDto
             {
                 DepartmentId = department.DepartmentId,
-                ClinicId = department.ClinicId,
                 Name = department.Name,
                 IsActive = department.IsActive
             });
         }
 
         [HttpPut("{id:guid}")]
-        [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
+        [Authorize(Roles = "Admin,SuperUser")]
         public async Task<IActionResult> Update(Guid id, DepartmentUpsertRequest request)
         {
+            var name = request.Name?.Trim() ?? string.Empty;
+            if (name.Length == 0) return BadRequest("Το όνομα ειδικότητας είναι υποχρεωτικό.");
+
             var department = await _db.Departments.FirstOrDefaultAsync(d => d.DepartmentId == id);
             if (department is null) return NotFound();
 
-            // Both the department's current clinic and the (possibly new)
-            // target clinic must be the manager's own — otherwise this would
-            // let a ClinicManager either edit another clinic's department or
-            // move their own department out to a clinic they don't run.
-            if (await GetClinicScopeErrorAsync(department.ClinicId) is { } error1) return error1;
-            if (await GetClinicScopeErrorAsync(request.ClinicId) is { } error2) return error2;
+            if (await _db.Departments.AnyAsync(d => d.DepartmentId != id && d.Name == name))
+                return Conflict("Υπάρχει ήδη ειδικότητα με αυτό το όνομα.");
 
-            var before = new { department.ClinicId, department.Name };
+            var before = new { department.Name };
+            department.Name = name;
 
-            department.ClinicId = request.ClinicId;
-            department.Name = request.Name;
+            // Doctors.Specialty mirrors the specialty's name (see DoctorsController).
+            // Tracked (not ExecuteUpdate) so it commits together with the rename.
+            foreach (var doctor in await _db.Doctors.Where(d => d.DepartmentId == id).ToListAsync())
+                doctor.Specialty = name;
             await _db.SaveChangesAsync();
 
             await AuditLogger.LogAsync(_db, HttpContext, "Update", "Department", id.ToString(), before, request);
@@ -118,13 +133,14 @@ namespace HospitalReservationsAPI.Controllers
         }
 
         [HttpDelete("{id:guid}")]
-        [Authorize(Roles = "Admin,SuperUser,ClinicManager")]
+        [Authorize(Roles = "Admin,SuperUser")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var department = await _db.Departments.FirstOrDefaultAsync(d => d.DepartmentId == id);
             if (department is null) return NotFound();
 
-            if (await GetClinicScopeErrorAsync(department.ClinicId) is { } error) return error;
+            if (await _db.Doctors.AnyAsync(d => d.DepartmentId == id && d.IsActive && !d.IsDeleted))
+                return Conflict("Υπάρχουν ενεργοί γιατροί σε αυτή την ειδικότητα. Μετάφερέ τους σε άλλη ειδικότητα πριν τη διαγραφή.");
 
             department.IsActive = false;
             await _db.SaveChangesAsync();
@@ -135,14 +151,5 @@ namespace HospitalReservationsAPI.Controllers
         }
 
         private bool IsHigherPrivileged() => User.IsInRole("Admin") || User.IsInRole("SuperUser");
-
-        // Returns an IActionResult (Forbid) if this ClinicManager doesn't own
-        // the given clinic — null if the check passes or doesn't apply.
-        private async Task<ActionResult?> GetClinicScopeErrorAsync(Guid clinicId)
-        {
-            if (!User.IsInRole("ClinicManager") || IsHigherPrivileged()) return null;
-            var ownClinicId = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
-            return clinicId == ownClinicId ? null : Forbid();
-        }
     }
 }

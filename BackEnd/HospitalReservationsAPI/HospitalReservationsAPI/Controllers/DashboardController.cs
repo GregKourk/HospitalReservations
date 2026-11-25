@@ -36,27 +36,29 @@ namespace HospitalReservationsAPI.Controllers
             var weekEnd = todayStart.AddDays(7);
             var thirtyDaysAgo = todayStart.AddDays(-30);
 
-            Guid? clinicScope = null;
+            List<Guid>? clinicScope = null;
             if (User.IsInRole("ClinicManager") && !IsHigherPrivileged())
-                clinicScope = await ClinicScopeHelper.GetOwnManagedClinicIdAsync(_db, User.GetUserId());
+                clinicScope = await ClinicScopeHelper.GetManagedClinicIdsAsync(_db, User.GetUserId());
 
             var appointmentsQuery = _db.Appointments.Where(a => !a.IsDeleted);
-            if (clinicScope.HasValue) appointmentsQuery = appointmentsQuery.Where(a => a.ClinicId == clinicScope);
+            if (clinicScope is not null) appointmentsQuery = appointmentsQuery.Where(a => clinicScope.Contains(a.ClinicId));
 
             var summary = new DashboardSummaryDto
             {
-                TotalClinics = clinicScope.HasValue ? 1 : await _db.Clinics.CountAsync(c => c.IsActive && !c.IsDeleted),
-                TotalDepartments = await _db.Departments.CountAsync(d => d.IsActive && (!clinicScope.HasValue || d.ClinicId == clinicScope)),
-                TotalDoctors = await _db.Doctors.CountAsync(d => d.IsActive && !d.IsDeleted && (!clinicScope.HasValue || d.ClinicId == clinicScope)),
+                TotalClinics = clinicScope is not null ? clinicScope.Count : await _db.Clinics.CountAsync(c => c.IsActive && !c.IsDeleted),
+                // For a branch: the specialties it offers (has active doctors in).
+                TotalDepartments = await _db.Departments.CountAsync(d => d.IsActive &&
+                    (clinicScope == null || d.Doctors.Any(doc => doc.IsActive && !doc.IsDeleted && doc.DoctorClinics.Any(dc => clinicScope.Contains(dc.ClinicId))))),
+                TotalDoctors = await _db.Doctors.CountAsync(d => d.IsActive && !d.IsDeleted && (clinicScope == null || d.DoctorClinics.Any(dc => clinicScope.Contains(dc.ClinicId)))),
                 // Patients has no ClinicId of its own — for a ClinicManager we
                 // approximate "their" patients as whoever has an appointment there.
-                TotalPatients = clinicScope.HasValue
+                TotalPatients = clinicScope is not null
                     ? await appointmentsQuery.Select(a => a.PatientId).Distinct().CountAsync()
                     : await _db.Patients.CountAsync(p => !p.IsDeleted),
                 // Users has no ClinicId either — the closest clinic-scoped
                 // reading of "active users" is that clinic's active doctors.
-                TotalActiveUsers = clinicScope.HasValue
-                    ? await _db.Doctors.CountAsync(d => d.IsActive && !d.IsDeleted && d.ClinicId == clinicScope)
+                TotalActiveUsers = clinicScope is not null
+                    ? await _db.Doctors.CountAsync(d => d.IsActive && !d.IsDeleted && d.DoctorClinics.Any(dc => clinicScope.Contains(dc.ClinicId)))
                     : await _db.Users.CountAsync(u => u.IsActive && !u.IsDeleted),
             };
 
@@ -75,8 +77,8 @@ namespace HospitalReservationsAPI.Controllers
             summary.NoShowsLast30Days = await appointmentsQuery
                 .CountAsync(a => a.AppointmentStatusId == NoShowStatusId && a.ScheduledStart >= thirtyDaysAgo && a.ScheduledStart < todayEnd);
 
-            summary.RecentActivity = clinicScope.HasValue
-                ? await GetClinicScopedActivityAsync(clinicScope.Value)
+            summary.RecentActivity = clinicScope is not null
+                ? await GetClinicScopedActivityAsync(clinicScope)
                 : await (
                     from log in _db.audit_AuditLogs
                     join user in _db.Users on log.UserId equals user.UserId into gj
@@ -99,15 +101,14 @@ namespace HospitalReservationsAPI.Controllers
 
         // AuditLogs has no ClinicId of its own, so "activity for my clinic"
         // means: entries whose EntityId names something that belongs to this
-        // clinic (an appointment, doctor, department or schedule of it), or
+        // clinic (an appointment, doctor or schedule of it), or
         // the clinic record itself.
-        private async Task<List<RecentActivityDto>> GetClinicScopedActivityAsync(Guid clinicId)
+        private async Task<List<RecentActivityDto>> GetClinicScopedActivityAsync(List<Guid> clinicIds)
         {
-            var appointmentIds = await _db.Appointments.Where(a => a.ClinicId == clinicId).Select(a => a.AppointmentId.ToString()).ToListAsync();
-            var doctorIds = await _db.Doctors.Where(d => d.ClinicId == clinicId).Select(d => d.DoctorId.ToString()).ToListAsync();
-            var departmentIds = await _db.Departments.Where(d => d.ClinicId == clinicId).Select(d => d.DepartmentId.ToString()).ToListAsync();
-            var scheduleIds = await _db.DoctorSchedules.Where(s => s.ClinicId == clinicId).Select(s => s.ScheduleId.ToString()).ToListAsync();
-            var clinicIdStr = clinicId.ToString();
+            var appointmentIds = await _db.Appointments.Where(a => clinicIds.Contains(a.ClinicId)).Select(a => a.AppointmentId.ToString()).ToListAsync();
+            var doctorIds = await _db.Doctors.Where(d => d.DoctorClinics.Any(dc => clinicIds.Contains(dc.ClinicId))).Select(d => d.DoctorId.ToString()).ToListAsync();
+            var scheduleIds = await _db.DoctorSchedules.Where(s => clinicIds.Contains(s.ClinicId)).Select(s => s.ScheduleId.ToString()).ToListAsync();
+            var clinicIdStrs = clinicIds.Select(id => id.ToString()).ToList();
 
             return await (
                 from log in _db.audit_AuditLogs
@@ -115,9 +116,8 @@ namespace HospitalReservationsAPI.Controllers
                 from user in gj.DefaultIfEmpty()
                 where (log.EntityType == "Appointment" && appointmentIds.Contains(log.EntityId!))
                     || (log.EntityType == "Doctor" && doctorIds.Contains(log.EntityId!))
-                    || (log.EntityType == "Department" && departmentIds.Contains(log.EntityId!))
                     || (log.EntityType == "DoctorSchedule" && scheduleIds.Contains(log.EntityId!))
-                    || (log.EntityType == "Clinic" && log.EntityId == clinicIdStr)
+                    || (log.EntityType == "Clinic" && clinicIdStrs.Contains(log.EntityId!))
                 orderby log.Timestamp descending
                 select new RecentActivityDto
                 {

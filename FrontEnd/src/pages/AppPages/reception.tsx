@@ -95,7 +95,7 @@ export default function ReceptionPage() {
         setClinics(data);
         if (data.length === 1) setClinicId(data[0].clinicId);
       })
-      .catch(() => notify('Αποτυχία φόρτωσης κλινικών.', 'error', 4000));
+      .catch(() => notify('Αποτυχία φόρτωσης υποκαταστημάτων.', 'error', 4000));
     getAppointmentStatuses().then(({ data }) => setStatuses(data)).catch(() => {});
   }, []);
 
@@ -117,11 +117,11 @@ export default function ReceptionPage() {
     setSelectedSlot(null);
     if (!doctorId) { setSlots([]); return; }
     setSlotsLoading(true);
-    getDoctorAvailability(doctorId, toIsoDate(date))
+    getDoctorAvailability(doctorId, toIsoDate(date), clinicId ?? undefined)
       .then(({ data }) => setSlots(data))
       .catch(() => notify('Αποτυχία φόρτωσης διαθεσιμότητας.', 'error', 4000))
       .finally(() => setSlotsLoading(false));
-  }, [doctorId, date]);
+  }, [doctorId, date, clinicId]);
 
   // ── the selected doctor's list for the selected day ──────────────────────
   const loadAppointments = () => {
@@ -150,7 +150,7 @@ export default function ReceptionPage() {
 
   async function handleBook() {
     if (!clinicId || !departmentId || !doctorId || !selectedSlot) {
-      notify('Επίλεξε κλινική, τμήμα, γιατρό και ώρα.', 'warning', 3500);
+      notify('Επίλεξε υποκατάστημα, ειδικότητα, γιατρό και ώρα.', 'warning', 3500);
       return;
     }
 
@@ -202,7 +202,7 @@ export default function ReceptionPage() {
       setNewPatientEmailTouched(false);
       setPatientQuery('');
       setReason('');
-      getDoctorAvailability(doctorId, toIsoDate(date)).then(({ data }) => setSlots(data));
+      getDoctorAvailability(doctorId, toIsoDate(date), clinicId ?? undefined).then(({ data }) => setSlots(data));
       loadAppointments();
     } catch (err) {
       notify(getErrorMessage(err, 'Η καταχώρηση απέτυχε.'), 'error', 4500);
@@ -254,26 +254,26 @@ export default function ReceptionPage() {
         <CardHeader><CardTitle className="text-base">Επιλογή γιατρού</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
-            <Label className="mb-1.5 block">Κλινική</Label>
+            <Label className="mb-1.5 block">Υποκατάστημα</Label>
             <SelectBox
               dataSource={clinics}
               valueExpr="clinicId"
               displayExpr="name"
               value={clinicId}
               onValueChanged={(e) => setClinicId(e.value)}
-              placeholder="Επίλεξε κλινική"
+              placeholder="Επίλεξε υποκατάστημα"
               searchEnabled
             />
           </div>
           <div>
-            <Label className="mb-1.5 block">Τμήμα</Label>
+            <Label className="mb-1.5 block">Ειδικότητα</Label>
             <SelectBox
               dataSource={departments}
               valueExpr="id"
               displayExpr="text"
               value={departmentId}
               onValueChanged={(e) => setDepartmentId(e.value)}
-              placeholder="Όλα τα τμήματα"
+              placeholder="Όλες οι ειδικότητες"
               disabled={!clinicId}
               searchEnabled
               showClearButton

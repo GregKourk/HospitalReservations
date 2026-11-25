@@ -6,6 +6,7 @@ import { UserInitials } from '@/partials/topbar/user-dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { roleLabel } from '@/lib/role-labels';
 
 const ROLE_QUICK_LINKS: { role: string; label: string; to: string; icon: React.ElementType }[] = [
   { role: 'Admin', label: 'Πίνακας Ελέγχου', to: '/admin/dashboard', icon: LayoutDashboard },
@@ -43,7 +44,7 @@ export default function MyAccountPage() {
             <div className="text-sm text-muted-foreground truncate">{email}</div>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {roles.map((r) => (
-                <Badge key={r} variant={r === 'SuperUser' ? 'destructive' : 'secondary'} size="sm">{r}</Badge>
+                <Badge key={r} variant={r === 'SuperUser' ? 'destructive' : 'secondary'} size="sm">{roleLabel(r)}</Badge>
               ))}
             </div>
           </div>
@@ -63,7 +64,7 @@ export default function MyAccountPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Ρόλοι</span>
-            <span>{roles.join(', ') || '—'}</span>
+            <span>{roles.map(roleLabel).join(', ') || '—'}</span>
           </div>
         </CardContent>
       </Card>

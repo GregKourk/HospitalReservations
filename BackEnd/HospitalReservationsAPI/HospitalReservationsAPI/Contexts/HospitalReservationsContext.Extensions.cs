@@ -12,6 +12,7 @@ namespace HospitalReservationsAPI
         public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
         public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
         public DbSet<AppointmentWaitlistEntry> AppointmentWaitlistEntries => Set<AppointmentWaitlistEntry>();
+        public DbSet<DoctorClinic> DoctorClinics => Set<DoctorClinic>();
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
@@ -76,6 +77,15 @@ namespace HospitalReservationsAPI
                 builder.HasOne(x => x.Clinic).WithMany().HasForeignKey(x => x.ClinicId);
                 builder.HasOne(x => x.Department).WithMany().HasForeignKey(x => x.DepartmentId);
                 builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId);
+            });
+
+            modelBuilder.Entity<DoctorClinic>(builder =>
+            {
+                builder.ToTable("DoctorClinics", "dbo");
+                builder.HasKey(x => new { x.DoctorId, x.ClinicId });
+                builder.HasIndex(x => x.ClinicId);
+                builder.HasOne(x => x.Doctor).WithMany(d => d.DoctorClinics).HasForeignKey(x => x.DoctorId);
+                builder.HasOne(x => x.Clinic).WithMany().HasForeignKey(x => x.ClinicId);
             });
         }
     }
