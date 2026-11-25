@@ -23,3 +23,7 @@ Thumbs.db
 # Claude Code / docs
 FrontEnd/.claude/
 FrontEnd/**/*.md
+
+# Server-only config — secrets for Production must never be committed
+BackEnd/**/appsettings.Production.json
+BackEnd/**/appsettings.Staging.json

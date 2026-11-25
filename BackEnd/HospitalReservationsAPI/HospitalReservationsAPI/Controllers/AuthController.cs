@@ -93,6 +93,28 @@ namespace HospitalReservationsAPI.Controllers
 
             var user = await _db.Users.FirstOrDefaultAsync(u => u.ExternalProvider == "GovGr" && u.ExternalSubjectId == subject);
             var isNewUser = user is null;
+            var isLinkedExisting = false;
+
+            // An Admin may have pre-provisioned this person's account (Users ->
+            // "Νέος χρήστης", e.g. a Doctor hired before their first gov.gr login)
+            // by email, with no external identity attached yet. Without this,
+            // their first real gov.gr login wouldn't match that row above (no
+            // ExternalSubjectId set) and would try to INSERT a second User with
+            // the same email — straight into UQ_Users_Email — crashing the login.
+            // Claim/link the existing row instead of creating a duplicate.
+            if (user is null && !string.IsNullOrEmpty(email))
+            {
+                user = await _db.Users.FirstOrDefaultAsync(u =>
+                    u.Email == email && (u.ExternalSubjectId == null || u.ExternalSubjectId == string.Empty));
+                if (user is not null)
+                {
+                    user.ExternalProvider = "GovGr";
+                    user.ExternalSubjectId = subject;
+                    await _db.SaveChangesAsync();
+                    isNewUser = false;
+                    isLinkedExisting = true;
+                }
+            }
 
             if (user is null)
             {
@@ -135,7 +157,8 @@ namespace HospitalReservationsAPI.Controllers
             var exchangeCode = Guid.NewGuid().ToString("N");
             _cache.Set(CacheKey(exchangeCode), user.UserId, TimeSpan.FromSeconds(30));
 
-            await AuditLogger.LogAsync(_db, HttpContext, isNewUser ? "LoginProvisioned" : "Login", "User", user.UserId.ToString());
+            var loginAction = isNewUser ? "LoginProvisioned" : isLinkedExisting ? "LoginLinked" : "Login";
+            await AuditLogger.LogAsync(_db, HttpContext, loginAction, "User", user.UserId.ToString());
 
             return Redirect($"{_frontendBaseUrl}/auth/callback?code={exchangeCode}");
         }
